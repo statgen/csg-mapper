@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#PBS -l nodes=1:ppn=[% threads %],walltime=243:00:00,pmem=4gb
+#PBS -l ddisk=50gb
+#PBS -m a
+#PBS -d [% workdir %]
+#PBS -M [% email %]
+#PBS -q flux
+#PBS -l qos=flux
+#PBS -A goncalo_flux
+#PBS -V
+#PBS -j oe
+
+JOB_ID=$PBS_JOBID
+NODELIST=$(cat $PBS_NODEFILE)
+TMP_DIR=[% tmp_dir %]
+
+if [ -d $TMP_DIR ]; then
+  for id in $(ls -1 $TMP_DIR); do
+    qstat -f -e $id > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      echo "[$(date)] Removing stale job tmp directory for job id: $id"
+      rm -rf $TMP_DIR/$id
+    fi
+  done
+fi
+
+[% INCLUDE _job %]
