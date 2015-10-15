@@ -31,10 +31,6 @@ sub get {
   return $self->conf->{$section}->{$name};
 }
 
-sub clusters {
-  return join($PIPE, split(/$COMMA/, shift->conf->get('global', 'clusters')));
-}
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;

@@ -1,23 +1,19 @@
 package CSG::Types;
 
-use CSG::Mapping::Base;
-use CSG::Mapping::Config;
+use CSG::Base;
+use CSG::Constants qw(:mapping);
 
 use Moose::Util::TypeConstraints;
 
 subtype 'ValidCluster',
   as 'Str',
-  where {
-    my $conf     = CSG::Mapping::Config->new();
-    my $clsuters = $conf->clusters;
-    $_ =~ /\Q$clusters\E/;
-  },
+  where { $_ =~ /$VALID_CLUSTER_REGEXPS/ },
   message { 'is not a valid cluster type' };
 
 subtype 'FileOnDisk',
   as 'Str',
-  where {-s $_}
-  message {'invalid file'}
+  where {-s $_},
+  message {'invalid file'};
 
 no Moose::Util::TypeConstraints;
 

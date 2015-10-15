@@ -3,7 +3,7 @@ package CSG::Mapping::Util;
 use base qw(Exporter);
 
 use CSG::Base qw(file);
-use CSG::Constants qw(mapping);
+use CSG::Constants qw(:mapping);
 
 our @EXPORT = ();
 

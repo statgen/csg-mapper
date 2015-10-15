@@ -11,10 +11,13 @@ our @IMPORT_MODULES = (
     Readonly
     ),
   'English'         => [qw(-no_match_vars)],
-  'List::MoreUtils' => [qw(all any none)],
+  'List::MoreUtils' => [qw()],
 );
 
 our %IMPORT_BUNDLES = (
+  cmd => [
+    'IPC::System::Simple' => [qw(run capture EXIT_ANY)],
+  ],
   config => [
     qw(
       Config::Tiny
@@ -28,6 +31,13 @@ our %IMPORT_BUNDLES = (
       Path::Class
       ),
     'File::Slurp::Tiny' => [qw(read_file read_lines)],
+  ],
+  test => [
+    qw(
+      Test::Most
+      Test::More
+      Test::Exception
+      )
   ],
   www => [
     qw(
