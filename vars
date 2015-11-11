@@ -1,3 +1,4 @@
 export PERL_CARTON_PATH=$(pwd)/local
 export PERL5LIB=$(pwd)/lib/perl5:$PERL_CARTON_PATH/lib/perl5:$PERL5LIB
 export PATH=$(pwd)/bin:$PERL_CARTON_PATH/bin:$PATH
+export CSG_MAPPING_CONF=$HOME/.config/csg/mapper.ini
