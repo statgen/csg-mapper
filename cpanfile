@@ -13,6 +13,10 @@ requires 'DBD::SQLite';
 requires 'DBIx::Class';
 requires 'DBIx::Class::Schema::Loader';
 
+requires 'DateTime';
+requires 'DateTime::Duration';
+requires 'DateTime::Format::MySQL';
+
 requires 'Moose';
 requires 'MooseX::AbstractFactory';
 
