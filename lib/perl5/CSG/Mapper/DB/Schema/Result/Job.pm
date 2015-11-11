@@ -1,12 +1,12 @@
 use utf8;
-package CSG::Mapping::DB::Schema::Result::Job;
+package CSG::Mapper::DB::Schema::Result::Job;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-CSG::Mapping::DB::Schema::Result::Job
+CSG::Mapper::DB::Schema::Result::Job
 
 =cut
 
@@ -232,13 +232,13 @@ __PACKAGE__->add_unique_constraint("job_id_UNIQUE", ["job_id"]);
 
 Type: belongs_to
 
-Related object: L<CSG::Mapping::DB::Schema::Result::Sample>
+Related object: L<CSG::Mapper::DB::Schema::Result::Sample>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "sample",
-  "CSG::Mapping::DB::Schema::Result::Sample",
+  "CSG::Mapper::DB::Schema::Result::Sample",
   { id => "sample_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
@@ -247,13 +247,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<CSG::Mapping::DB::Schema::Result::State>
+Related object: L<CSG::Mapper::DB::Schema::Result::State>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "state",
-  "CSG::Mapping::DB::Schema::Result::State",
+  "CSG::Mapper::DB::Schema::Result::State",
   { id => "state_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );

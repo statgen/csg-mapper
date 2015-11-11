@@ -1,4 +1,4 @@
-package CSG::Mapping::Util;
+package CSG::Mapper::Util;
 
 use base qw(Exporter);
 

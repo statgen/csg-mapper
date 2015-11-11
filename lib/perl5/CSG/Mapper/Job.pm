@@ -1,10 +1,10 @@
-package CSG::Mapping::Job;
+package CSG::Mapper::Job;
 
 use Moose;
 
 use CSG::Base;
 use CSG::Types;
-use CSG::Mapping::Job::Factory;
+use CSG::Mapper::Job::Factory;
 
 has 'cluster' => (is => 'ro', isa => 'ValidCluster', required => 1);
 has 'job_id'  => (is => 'ro', isa => 'Int',          required => 1);

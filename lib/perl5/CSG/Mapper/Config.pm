@@ -1,4 +1,4 @@
-package CSG::Mapping::Config;
+package CSG::Mapper::Config;
 
 # TODO - make this a singleton, maybe
 # TODO - build class methods with MooseX::ClassAttribute

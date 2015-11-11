@@ -1,12 +1,12 @@
 use utf8;
-package CSG::Mapping::DB::Schema::Result::State;
+package CSG::Mapper::DB::Schema::Result::State;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-CSG::Mapping::DB::Schema::Result::State
+CSG::Mapper::DB::Schema::Result::State
 
 =cut
 
@@ -88,13 +88,13 @@ __PACKAGE__->add_unique_constraint("name_UNIQUE", ["name"]);
 
 Type: has_many
 
-Related object: L<CSG::Mapping::DB::Schema::Result::Job>
+Related object: L<CSG::Mapper::DB::Schema::Result::Job>
 
 =cut
 
 __PACKAGE__->has_many(
   "jobs",
-  "CSG::Mapping::DB::Schema::Result::Job",
+  "CSG::Mapper::DB::Schema::Result::Job",
   { "foreign.state_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

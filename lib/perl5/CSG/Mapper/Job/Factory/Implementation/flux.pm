@@ -1,9 +1,9 @@
-package CSG::Mapping::Job::Factory::Implementation::flux;
+package CSG::Mapper::Job::Factory::Implementation::flux;
 
 use CSG::Base qw(cmd www);
 use CSG::Constants qw(:mapping);
-use CSG::Mapping::Config;
-use CSG::Mapping::Util qw(:parsers);
+use CSG::Mapper::Config;
+use CSG::Mapper::Util qw(:parsers);
 
 use Moose;
 

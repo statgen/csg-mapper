@@ -1,9 +1,9 @@
-package CSG::Mapping::BAM;
+package CSG::Mapper::BAM;
 
 use CSG::Base qw(file cmd);
 use CSG::Constants qw(:mapping);
 use CSG::Types;
-use CSG::Mapping::Config;
+use CSG::Mapper::Config;
 
 use Moose;
 
@@ -24,7 +24,7 @@ has 'results_path' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_r
 sub _build_bam {
   my ($self) = @_;
 
-  my $conf   = CSG::Mapping::Config->new();
+  my $conf   = CSG::Mapper::Config->new();
   my $prefix = $conf->get($self->cluster, 'prefix');
 
   return File::Spec->join($BAM_FILE_PREFIX{$self->cluster}, $self->center, $self->rundir, $self->name);

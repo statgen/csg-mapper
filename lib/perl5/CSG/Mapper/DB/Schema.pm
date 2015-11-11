@@ -1,5 +1,5 @@
 use utf8;
-package CSG::Mapping::DB::Schema;
+package CSG::Mapper::DB::Schema;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE

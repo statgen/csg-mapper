@@ -1,12 +1,12 @@
 use utf8;
-package CSG::Mapping::DB::Schema::Result::Sample;
+package CSG::Mapper::DB::Schema::Result::Sample;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-CSG::Mapping::DB::Schema::Result::Sample
+CSG::Mapper::DB::Schema::Result::Sample
 
 =cut
 
@@ -142,13 +142,13 @@ __PACKAGE__->set_primary_key("id");
 
 Type: has_many
 
-Related object: L<CSG::Mapping::DB::Schema::Result::Job>
+Related object: L<CSG::Mapper::DB::Schema::Result::Job>
 
 =cut
 
 __PACKAGE__->has_many(
   "jobs",
-  "CSG::Mapping::DB::Schema::Result::Job",
+  "CSG::Mapper::DB::Schema::Result::Job",
   { "foreign.sample_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

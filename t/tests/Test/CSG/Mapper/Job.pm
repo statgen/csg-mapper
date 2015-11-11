@@ -1,12 +1,12 @@
-package Test::CSG::Mapping::Job;
+package Test::CSG::Mapper::Job;
 
 use base qw(Test::Class);
 use CSG::Base qw(test);
 
-use CSG::Mapping::Job;
+use CSG::Mapper::Job;
 
 sub class {
-  return q{CSG::Mapping::Job};
+  return q{CSG::Mapper::Job};
 }
 
 

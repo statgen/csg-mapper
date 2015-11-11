@@ -1,4 +1,4 @@
-package CSG::Mapping::Job::Factory::Implementation::Requires;
+package CSG::Mapper::Job::Factory::Implementation::Requires;
 
 use Moose::Role;
 
