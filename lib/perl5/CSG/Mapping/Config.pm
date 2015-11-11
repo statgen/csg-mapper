@@ -5,7 +5,7 @@ package CSG::Mapping::Config;
 
 use Moose;
 
-use CSG::Base qw(:config);
+use CSG::Base qw(config);
 use CSG::Constants;
 use CSG::Types;
 
@@ -20,9 +20,18 @@ has '_file' => (
 );
 
 has 'conf' => (is => 'ro', isa => 'Config::Tiny', lazy => 1, builder => '_build_conf');
+has 'dsn'  => (is => 'ro', isa => 'Str',          lazy => 1, builder => '_build_dsn');
 
 sub _build_conf {
   return Config::Tiny->read(shift->_file);
+}
+
+sub _build_dsn {
+  my ($self) = @_;
+  return sprintf 'dbi:mysql:database=%s;host=%s;port=%d',
+    $self->get('db', 'db'),
+    $self->get('db', 'host'),
+    $self->get('db', 'port');
 }
 
 sub get {
@@ -33,4 +42,5 @@ sub get {
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
+
 1;
