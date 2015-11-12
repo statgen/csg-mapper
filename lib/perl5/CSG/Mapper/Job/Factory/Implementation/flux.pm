@@ -7,9 +7,15 @@ use CSG::Mapper::Util qw(:parsers);
 
 use Moose;
 
-Readonly::Scalar our $FLUX_KIBANA_URL_FMT => q{https://kibana.arc-ts.umich.edu/logstash-joblogs-%d.*/pbsacctlog/_search};
+Readonly::Scalar my $JOB_STATE_CMD_FORMAT => q{qstat -f -e %d > /dev/null 2>&1 ; echo $?};
+Readonly::Scalar my $FLUX_KIBANA_URL_FMT  => q{https://kibana.arc-ts.umich.edu/logstash-joblogs-%d.*/pbsacctlog/_search};
 
-has 'job_id' => (is => 'ro', isa => 'Str', required => 1);
+Readonly::Hash my %JOB_STATES => (
+  0   => 'running',
+  153 => 'not_running',
+);
+
+has 'job_id' => (is => 'rw', isa => 'Str', predicate => 'has_job_id');
 has '_logstash_url' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build__logstash_url');
 
 around 'job_id' => sub {
@@ -55,9 +61,13 @@ sub elapsed_seconds {
 
 sub state {
   my ($self) = @_;
-  my $cmd = sprintf $JOB_STATE_CMD_FORMAT{flux}, $self->job_id;
+  my $cmd = sprintf $JOB_STATE_CMD_FORMAT, $self->job_id;
   chomp(my $state = capture(EXIT_ANY, $cmd));
   return $JOB_STATES{$state};
+}
+
+sub submit {
+  # TODO - need to parse the output for the qsub command and set the job_id
 }
 
 no Moose;

@@ -47,12 +47,6 @@ __PACKAGE__->table("jobs");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 state_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 job_id
 
   data_type: 'integer'
@@ -80,16 +74,15 @@ __PACKAGE__->table("jobs");
   is_nullable: 0
   size: 45
 
-=head2 build
-
-  data_type: 'enum'
-  default_value: 37
-  extra: {list => [37,38]}
-  is_nullable: 0
-
 =head2 exit_code
 
   data_type: 'integer'
+  is_nullable: 1
+
+=head2 elapsed
+
+  data_type: 'integer'
+  default_value: 0
   is_nullable: 1
 
 =head2 submitted_at
@@ -104,19 +97,13 @@ __PACKAGE__->table("jobs");
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   default_value: 'CURRENT_TIMESTAMP'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 ended_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   default_value: 'CURRENT_TIMESTAMP'
-  is_nullable: 0
-
-=head2 elapsed_time
-
-  data_type: 'integer'
-  default_value: 0
   is_nullable: 1
 
 =head2 created_at
@@ -140,8 +127,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "sample_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "state_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "job_id",
   { data_type => "integer", is_nullable => 0 },
   "cluster",
@@ -152,15 +137,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 0 },
   "walltime",
   { data_type => "varchar", is_nullable => 0, size => 45 },
-  "build",
-  {
-    data_type => "enum",
-    default_value => 37,
-    extra => { list => [37, 38] },
-    is_nullable => 0,
-  },
   "exit_code",
   { data_type => "integer", is_nullable => 1 },
+  "elapsed",
+  { data_type => "integer", default_value => 0, is_nullable => 1 },
   "submitted_at",
   {
     data_type => "datetime",
@@ -173,17 +153,15 @@ __PACKAGE__->add_columns(
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
     default_value => "CURRENT_TIMESTAMP",
-    is_nullable => 0,
+    is_nullable => 1,
   },
   "ended_at",
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
     default_value => "CURRENT_TIMESTAMP",
-    is_nullable => 0,
+    is_nullable => 1,
   },
-  "elapsed_time",
-  { data_type => "integer", default_value => 0, is_nullable => 1 },
   "created_at",
   {
     data_type => "datetime",
@@ -243,24 +221,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 state
 
-Type: belongs_to
-
-Related object: L<CSG::Mapper::DB::Schema::Result::State>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "state",
-  "CSG::Mapper::DB::Schema::Result::State",
-  { id => "state_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-11-11 11:26:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:omlb3ax/n1YY+Ia4oBKayw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-12 15:12:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+vRkjZU1imu11uUcKHybEQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

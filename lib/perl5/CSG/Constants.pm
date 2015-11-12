@@ -24,11 +24,9 @@ our @EXPORT_OK = (
     $TRUE
     $FALSE
     $PIPE
-    @TIME_FORMAT_REGEXPS
     $VALID_CLUSTER_REGEXPS
-    %JOB_ELAPSED_TIME_FORMAT
-    %JOB_STATE_CMD_FORMAT
-    %JOB_STATES
+    @TIME_FORMAT_REGEXPS
+    %SAMPLE_STATE
     )
 );
 
@@ -42,20 +40,16 @@ our %EXPORT_TAGS = (
       $TRUE
       $FALSE
       $PIPE
-      @TIME_FORMAT_REGEXPS
       $VALID_CLUSTER_REGEXPS
-      %JOB_ELAPSED_TIME_FORMAT
-      %JOB_STATE_CMD_FORMAT
-      %JOB_STATES
+      @TIME_FORMAT_REGEXPS
+      %SAMPLE_STATE
       )
   ],
   mapping => [
     qw(
-      @TIME_FORMAT_REGEXPS
       $VALID_CLUSTER_REGEXPS
-      %JOB_ELAPSED_TIME_FORMAT
-      %JOB_STATE_CMD_FORMAT
-      %JOB_STATES
+      @TIME_FORMAT_REGEXPS
+      %SAMPLE_STATE
     )
   ],
 );
@@ -84,24 +78,12 @@ Readonly::Array our @TIME_FORMAT_REGEXPS => (
   qr/(?<seconds>\d{1,7})/,
 );
 
-Readonly::Hash our %JOB_ELAPSED_TIME_FORMAT => (
-  flux => undef,
-  csg  => q{sacct -j %d -X -n -o elapsed},
-);
-
-Readonly::Hash our %JOB_STATE_CMD_FORMAT => (
-  flux => q{qstat -f -e %d > /dev/null 2>&1 ; echo $?},
-  csg  => q{sacct -j %d -X -n -o state%%20},
-);
-
-Readonly::Hash our %JOB_STATES => (
-  RUNNING   => 'running',
-  COMPLETED => 'completed',
-  FAILED    => 'failed',
-  REQUEUED  => 'requeued',
-  CANCELLED => 'cancelled',
-  0         => 'running',
-  153       => 'not_running',
+Readonly::Hash our %SAMPLE_STATE => (
+  failed    => -1,
+  requested => 0,
+  cancelled => 1,
+  submitted => 2,
+  completed => 3,
 );
 
 1;
