@@ -50,6 +50,7 @@ sub _build_host {
   return $host;
 }
 
+# FIXME - $BAM_RESULTS_DIR is not defined yet
 sub _build_results_path {
   my ($self) = @_;
   return File::Spec->join($CLUSTER_PREFIX{$self->cluster}, $self->host, $BAM_RESULTS_DIR, $self->center, $self->pi,

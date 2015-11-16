@@ -1,14 +1,14 @@
 #!/bin/sh
 
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=[% threads %]
-#SBATCH --mem=[% memory %]
+#SBATCH --cpus-per-task=[% settings.threads %]
+#SBATCH --mem=[% settings.memory %]
 #SBATCH --gres=tmp:sata:200
 #SBATCH --time=10-02:00:00
-#SBATCH --workdir=[% workdir %]
+#SBATCH --workdir=[% settings.workdir %]
 #SBATCH --partition=nomosix
 #SBATCH --mail-type=FAIL
-#SBATCH --mail-user=[% email %]
+#SBATCH --mail-user=[% settings.email %]
 #SBATCH --job-name=[% job.name %]
 
 JOB_ID=$SLURM_JOB_ID

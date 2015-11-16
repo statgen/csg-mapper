@@ -64,8 +64,37 @@ sub execute {
       rundir  => $sample->run_dir,
     );
 
+    my $fh = File::Temp->new();
+    my $tt = Template->new(INCLUDE_PATH => qq($Bin/../templates));
+
+    $tt->process(
+      "batch/$opts->{cluster}.tt2", {
+        settings => {
+          threads  => $procs,
+          memory   => $memory,                                               # XXX - different formats for diff clusters
+          walltime => $walltime,
+          build    => $build,
+          tmp_dir  => File::Spec->join($config->get('', '')),                # XXX
+          run_dir  => File::Spec->join(),                                    # XXX
+          job_name => sprintf '%s-%s', $opts->{project}, $bam->sample_id,    # XXX
+          email           => $config->get($opts->{project}, 'email'),
+          workdir         => File::Spec->join(),            # XXX
+          account         => $config->get($opts->{cluster}, 'account'),
+          project_dir     => File::Spec->join(),            # XXX
+          max_failed_runs => $config->get($opts->{project}, 'max_failed_runs'),
+          pipeline        => $config->get($opts->{project}, 'pipeline'),          # XXX
+        },
+        gotcloud => {
+          root    => File::Spec->join(),                                          # XXX
+          conf    => File::Spec->join(),                                          # XXX
+          ref_dir => File::Spec->join(),                                          # XXX
+        },
+        bam => $bam,
+      }
+    );
+
     my $batch = build_batch_script_template();
-    my $job   = CSG::Mapper::Job->new(cluster => $opts->{cluster});
+    my $job = CSG::Mapper::Job->new(cluster => $opts->{cluster});
 
     # XXX - this might throw an exception? not yet but maybe if it fails to submit the job?
     $job->submit($batch);

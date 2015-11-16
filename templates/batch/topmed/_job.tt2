@@ -1,50 +1,53 @@
-OUT_DIR=[% bam.results_dir %]
-RUN_DIR=[% run_dir %]
-REF_DIR=[% conf.gotcloud_reference_dir %]
-PROJECT_DIR=[% project_dir %]
+OUT_DIR=[% bam.results_path %]
+RUN_DIR=[% settings.run_dir %]
+REF_DIR=[% gotcloud.ref_dir %]
+PROJECT_DIR=[% settings.project_dir %]
 
 JOB_LOG=[% bam.job_log %]
 
-ALIGN_THREADS=[% threads %]
+ALIGN_THREADS=[% settings.threads %]
 
 SAMPLE_ID=[% bam.sample_id %]
-BAM_DB_ID=[% bam.id %]
 BAM_CENTER=[% bam.center %]
 BAM_FILE=[% bam.path %]
 BAM_PI=[% bam.pi %]
 BAM_HOST=[% bam.host %]
-BAM_PIPELINE=[% bam.pipeline %]
+BAM_PIPELINE=[% settings.pipeline %]
 
-GOTCLOUD_ROOT=[% gotcloud_root %]
-GOTCLOUD_CONF=[% gotcloud_conf %]
+GOTCLOUD_ROOT=[% gotcloud.root %]
+GOTCLOUD_CONF=[% gotcloud.conf %]
 
 TMP_DIR="${TMP_DIR}/${JOB_ID}"
 FASTQ_LIST="${TMP_DIR}/fastq.list"
 BAM_LIST="${TMP_DIR}/bam.list"
 
+# TODO - record job start time
+#      - record job id
+#      - record node
+
 echo "
 [$(date)] Starting remapping pipeline
 
-OUT_DIR:    $OUT_DIR
-TMP_DIR:    $TMP_DIR
-REF_DIR:    $REF_DIR
-RUN_DIR:    $RUN_DIR
-BAM:        $BAM_FILE
-BAM_ID:     $BAM_ID
-BAM_CENTER: $BAM_CENTER
-BAM_LIST:   $BAM_LIST
-BAM_PI:     $BAM_PI
-BAM_DB_ID:  $BAM_DB_ID
-BAM_HOST:   $BAM_HOST
-FASTQ_LIST: $FASTQ_LIST
-NODE:       $NODELIST
-JOBID:      $JOB_ID
-GOTCLOUD:   $(which gotcloud)
-PIPELINE:   $PIPELINE
-GC_CONF:    $GOTCLOUD_CONF
-GC_ROOT:    $GOTCLOUD_ROOT
+OUT_DIR:      $OUT_DIR
+TMP_DIR:      $TMP_DIR
+REF_DIR:      $REF_DIR
+RUN_DIR:      $RUN_DIR
+BAM:          $BAM_FILE
+BAM_ID:       $BAM_ID
+BAM_CENTER:   $BAM_CENTER
+BAM_LIST:     $BAM_LIST
+BAM_PI:       $BAM_PI
+BAM_HOST:     $BAM_HOST
+BAM_PIPELINE: $BAM_PIPELINE
+FASTQ_LIST:   $FASTQ_LIST
+NODE:         $NODELIST
+JOBID:        $JOB_ID
+GOTCLOUD:     $(which gotcloud)
+GC_CONF:      $GOTCLOUD_CONF
+GC_ROOT:      $GOTCLOUD_ROOT
 "
-export PERL_CARTON_PATH=${PROJECT_DIR}/local
+
+export PERL_CARTON_PATH=${PROJECT_DIR}/local # FIXME - path is different in both clusters! ugh
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:${PROJECT_DIR}/lib/perl5:$PERL5LIB
 export PATH=${GOTCLOUD_ROOT}:${PROJECT_DIR}/bin:${PATH}
 
@@ -76,6 +79,7 @@ fi
 echo "[$(date)] Creating BAM_LIST"
 echo "$BAM_ID $BAM_FILE" > $BAM_LIST
 
+# TODO - there has got to be a better way
 echo "[$(date)] Recording job info"
 echo "---" >> $JOB_LOG
 echo "  start: $(date)" >> $JOB_LOG
@@ -84,7 +88,7 @@ echo "  out_dir: $OUT_DIR" >> $JOB_LOG
 echo "  tmp_dir: $TMP_DIR" >> $JOB_LOG
 echo "  ref_dir: $REF_DIR" >> $JOB_LOG
 echo "  run_dir: $RUN_DIR" >> $JOB_LOG
-echo "  pipeline: $PIPELINE" >> $JOB_LOG
+echo "  pipeline: $BAM_PIPELINE" >> $JOB_LOG
 echo "  gc_conf: $GOTCLOUD_CONF" >> $JOB_LOG
 echo "  gc_root: $GOTCLOUD_ROOT" >> $JOB_LOG
 echo "  gotcloud: $(which gotcloud)" >> $JOB_LOG
@@ -94,7 +98,6 @@ echo "  bam_id: $BAM_ID" >> $JOB_LOG
 echo "  bam_center: $BAM_CENTER" >> $JOB_LOG
 echo "  bam_list: $BAM_LIST" >> $JOB_LOG
 echo "  bam_pi: $BAM_PI" >> $JOB_LOG
-echo "  bam_db_id: $BAM_DB_ID" >> $JOB_LOG
 echo "  bam_host: $BAM_HOST" >> $JOB_LOG
 echo "  fastq_list: $FASTQ_LIST" >> $JOB_LOG
 echo "  cluster: csg" >> $JOB_LOG
@@ -108,7 +111,7 @@ fi
 echo "[$(date)] Beginning gotcloud pipeline"
 gotcloud pipe              \
   --gcroot  $GOTCLOUD_ROOT \
-  --name    $PIPELINE      \
+  --name    $BAM_PIPELINE      \
   --conf    $GOTCLOUD_CONF \
   --numjobs 1              \
   --ref_dir $REF_DIR       \
@@ -119,8 +122,8 @@ rc=$?
 echo "  pipe_rc: $rc" >> $JOB_LOG
 
 if [ "$rc" -ne 0 ]; then
-  echo "[$(date)] $PIPELINE failed with exit code $rc" 1>&2
-  csg-mapper update --bamid $BAM_DB_ID --state failed
+  echo "[$(date)] $BAM_PIPELINE failed with exit code $rc" 1>&2
+  csg-mapper update --job-id $JOB_ID --state failed
 else
   echo "[$(date)] Begining gotcloud alignment"
   gotcloud align                      \
@@ -138,10 +141,10 @@ else
 
   if [ "$rc" -ne 0 ]; then
     echo "[$(date)] Alignment failed with exit code $rc" 1>&2
-    csg-mapper update --bamid $BAM_DB_ID --state failed
+    csg-mapper update --job-id $JOB_ID --state failed
   else
     echo "[$(date)] Alignment completed"
-    csg-mapper update --bamid $BAM_DB_ID --state completed
+    csg-mapper update --job-id $JOB_ID --state failed
   fi
 fi
 
@@ -149,7 +152,7 @@ if [ "$rc" -ne 0 ]; then
   echo "[$(date)] Alignment failed, moving TMP_DIR to RUN_DIR"
   mv $TMP_DIR $RUN_DIR
 
-  max_runs=[% config.max_failed_runs %]
+  max_runs=[% settings.max_failed_runs %]
   run_count=$(find $RUN_DIR -maxdepth 1 -type d|wc -l)
   runs=$(find $RUN_DIR/* -maxdepth 1 -type d|sort)
 
@@ -171,6 +174,10 @@ fi
 
 echo "[$(date)] Exiting [RC: $rc]"
 echo "  end: $(date)" >> $JOB_LOG
+
+# TODO - record job end time
+#      - record exit code as well
+
 exit $rc
 
 # vi: ft=sh

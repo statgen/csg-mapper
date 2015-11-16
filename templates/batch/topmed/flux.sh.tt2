@@ -1,19 +1,21 @@
 #!/bin/sh
 
-#PBS -l nodes=1:ppn=[% threads %],walltime=243:00:00,pmem=4gb
+#PBS -l nodes=1:ppn=[% settings.threads %]
+#BPS -l walltime=[% settings.walltime %]
+#PBS -l pmem=[% settings.memory %]
 #PBS -l ddisk=50gb
 #PBS -m a
-#PBS -d [% workdir %]
-#PBS -M [% email %]
+#PBS -d [% settings.workdir %]
+#PBS -M [% settings.email %]
 #PBS -q flux
 #PBS -l qos=flux
-#PBS -A goncalo_flux
+#PBS -A [% settings.account %]
 #PBS -V
 #PBS -j oe
 
 JOB_ID=$PBS_JOBID
 NODELIST=$(cat $PBS_NODEFILE)
-TMP_DIR=[% tmp_dir %]
+TMP_DIR=[% settings.tmp_dir %]
 
 if [ -d $TMP_DIR ]; then
   for id in $(ls -1 $TMP_DIR); do
