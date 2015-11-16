@@ -1,19 +1,21 @@
 #!/bin/sh
 
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=[% settings.threads %]
-#SBATCH --mem=[% settings.memory %]
+#SBATCH --cpus-per-task=[% job.procs %]
+#SBATCH --mem=[% job.memory %]
 #SBATCH --gres=tmp:sata:200
 #SBATCH --time=10-02:00:00
-#SBATCH --workdir=[% settings.workdir %]
+#SBATCH --workdir=[% job.workdir %]
 #SBATCH --partition=nomosix
 #SBATCH --mail-type=FAIL
-#SBATCH --mail-user=[% settings.email %]
-#SBATCH --job-name=[% job.name %]
+#SBATCH --mail-user=[% job.email %]
+#SBATCH --job-name=[% job.job_name %]
 
 JOB_ID=$SLURM_JOB_ID
 NODELIST=$SLURM_JOB_NODELIST
-TMP_DIR=[% tmp_dir %]
+TMP_DIR=[% settings.tmp_dir %]
+
+csg-mapper update --id [% settings.job_id %] --start --job-id $JOB_ID --node $NODELIST
 
 if [ -d $TMP_DIR ]; then
   for id in $(ls -1 $TMP_DIR); do

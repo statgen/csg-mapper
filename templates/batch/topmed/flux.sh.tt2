@@ -1,21 +1,24 @@
 #!/bin/sh
 
-#PBS -l nodes=1:ppn=[% settings.threads %]
-#BPS -l walltime=[% settings.walltime %]
-#PBS -l pmem=[% settings.memory %]
+#PBS -l nodes=1:ppn=[% job.procs %]
+#BPS -l walltime=[% job.walltime %]
+#PBS -l pmem=[% jobs.memory %]
 #PBS -l ddisk=50gb
 #PBS -m a
-#PBS -d [% settings.workdir %]
-#PBS -M [% settings.email %]
+#PBS -d [% job.workdir %]
+#PBS -M [% job.email %]
 #PBS -q flux
 #PBS -l qos=flux
-#PBS -A [% settings.account %]
+#PBS -A [% job.account %]
 #PBS -V
 #PBS -j oe
+#PBS -N [% job.job_name %]
 
 JOB_ID=$PBS_JOBID
 NODELIST=$(cat $PBS_NODEFILE)
 TMP_DIR=[% settings.tmp_dir %]
+
+csg-mapper update --id [% settings.job_id %] --start --job-id $JOB_ID --node $NODELIST
 
 if [ -d $TMP_DIR ]; then
   for id in $(ls -1 $TMP_DIR); do

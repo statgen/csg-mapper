@@ -12,6 +12,7 @@ our @EXPORT = (
     $TRUE
     $FALSE
     $PIPE
+    $DASH
     )
 );
 
@@ -24,6 +25,7 @@ our @EXPORT_OK = (
     $TRUE
     $FALSE
     $PIPE
+    $DASH
     $VALID_CLUSTER_REGEXPS
     @TIME_FORMAT_REGEXPS
     %SAMPLE_STATE
@@ -40,6 +42,7 @@ our %EXPORT_TAGS = (
       $TRUE
       $FALSE
       $PIPE
+      $DASH
       $VALID_CLUSTER_REGEXPS
       @TIME_FORMAT_REGEXPS
       %SAMPLE_STATE
@@ -61,6 +64,7 @@ Readonly::Scalar our $PERIOD     => q{.};
 Readonly::Scalar our $TRUE       => q{1};
 Readonly::Scalar our $FALSE      => q{0};
 Readonly::Scalar our $PIPE       => q{|};
+Readonly::Scalar our $DASH       => q{-};
 
 Readonly::Scalar our $VALID_CLUSTER_REGEXPS => qr{csg|flux};
 

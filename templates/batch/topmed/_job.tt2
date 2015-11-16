@@ -2,8 +2,9 @@ OUT_DIR=[% bam.results_path %]
 RUN_DIR=[% settings.run_dir %]
 REF_DIR=[% gotcloud.ref_dir %]
 PROJECT_DIR=[% settings.project_dir %]
+DELAY=[% settings.delay %]
 
-JOB_LOG=[% bam.job_log %]
+JOB_LOG=[% settings.job_log %]
 
 ALIGN_THREADS=[% settings.threads %]
 
@@ -20,10 +21,6 @@ GOTCLOUD_CONF=[% gotcloud.conf %]
 TMP_DIR="${TMP_DIR}/${JOB_ID}"
 FASTQ_LIST="${TMP_DIR}/fastq.list"
 BAM_LIST="${TMP_DIR}/bam.list"
-
-# TODO - record job start time
-#      - record job id
-#      - record node
 
 echo "
 [$(date)] Starting remapping pipeline
@@ -47,7 +44,7 @@ GC_CONF:      $GOTCLOUD_CONF
 GC_ROOT:      $GOTCLOUD_ROOT
 "
 
-export PERL_CARTON_PATH=${PROJECT_DIR}/local # FIXME - path is different in both clusters! ugh
+export PERL_CARTON_PATH=${PROJECT_DIR}/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:${PROJECT_DIR}/lib/perl5:$PERL5LIB
 export PATH=${GOTCLOUD_ROOT}:${PROJECT_DIR}/bin:${PATH}
 
@@ -80,6 +77,8 @@ echo "[$(date)] Creating BAM_LIST"
 echo "$BAM_ID $BAM_FILE" > $BAM_LIST
 
 # TODO - there has got to be a better way
+#      - make csg-mapper emit a yaml logfile of the job meta data?
+# csg-mapper show --job-id $JOB_ID --info > $JOB_LOG
 echo "[$(date)] Recording job info"
 echo "---" >> $JOB_LOG
 echo "  start: $(date)" >> $JOB_LOG
