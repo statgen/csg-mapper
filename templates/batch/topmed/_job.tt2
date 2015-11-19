@@ -1,4 +1,4 @@
-OUT_DIR=[% bam.results_path %]
+OUT_DIR=[% bam.results_dir %]
 RUN_DIR=[% settings.run_dir %]
 REF_DIR=[% gotcloud.ref_dir %]
 PROJECT_DIR=[% settings.project_dir %]

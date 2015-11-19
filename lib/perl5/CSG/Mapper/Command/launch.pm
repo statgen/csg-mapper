@@ -7,7 +7,7 @@ package CSG::Mapper::Command::launch;
 use CSG::Mapper -command;
 
 use CSG::Base;
-use CSG::Constants qw(:mapping);
+use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
@@ -48,10 +48,13 @@ sub execute {
   my $config = CSG::Mapper::Config->new();
   my $schema = $self->{stash}->{schema};
 
-  my $procs    = $opts->{procs}    // $config->get($opts->{project}, 'procs');
-  my $memory   = $opts->{memory}   // $config->get($opts->{project}, 'memory');
-  my $walltime = $opts->{walltime} // $config->get($opts->{project}, 'walltime');
-  my $build    = $opts->{build}    // $config->get($opts->{project}, 'ref_build');
+  my $cluster = $self->app->global_options->{cluster};
+  my $project = $self->app->global_options->{project};
+
+  my $procs    = $opts->{procs}    // $config->get($project, 'procs');
+  my $memory   = $opts->{memory}   // $config->get($project, 'memory');
+  my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
+  my $build    = $opts->{build}    // $config->get($project, 'ref_build');
 
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
@@ -65,9 +68,40 @@ sub execute {
       rundir  => $sample->run_dir,
     );
 
-    my $fh  = File::Temp->new();
-    my $tt  = Template->new(INCLUDE_PATH => qq($Bin/../templates));
-    my $job = CSG::Mapper::Job->new(cluster => $opts->{cluster});
+    my $fh          = File::Temp->new();
+    my $tt          = Template->new(INCLUDE_PATH => qq($FindBin::Bin/../templates));
+    my $job         = CSG::Mapper::Job->new(cluster => $opts->{cluster});
+    my $project_dir = qq{$FindBin::Bin/../};
+
+    my $basedir = File::Spec->join($config->get($cluster, 'prefix'), $bam->host, 'mapping');
+    unless (-e $basedir) {
+      make_path($basedir);    # TODO - add logging
+    }
+
+    my $log_dir = File::Spec->join($basedir, $config->get($cluster, 'workdir'), $bam->sample_id);
+    unless (-e $log_dir) {
+      make_path($log_dir);    # TODO - add logging
+    }
+
+    my $run_dir = File::Spec->join($basedir, $config->get($cluster, 'run_dir'));
+    unless (-e $run_dir) {
+      make_path($run_dir);    # TODO - add logging
+    }
+
+    my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf'));
+    unless (-e $gotcloud_conf) {
+      die qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};    # TODO - add logging
+    }
+
+    my $gotcloud_root = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_root'));
+    unless (-e $gotcloud_root) {
+      die qq{GOTCLOUD_ROOT [$gotcloud_root] does not exist!};     # TODO - add logging
+    }
+
+    my $gotcloud_ref = $config->get('gotcloud', qq{build${build}_ref_dir});
+    unless (-e $gotcloud_ref) {
+      die qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};    # TODO - add logging
+    }
 
     my $job_meta = $sample->add_to_jobs(
       {
@@ -83,29 +117,29 @@ sub execute {
       "batch/$opts->{cluster}.tt2", {
         job => {
           procs    => $procs,
-          memory   => $memory,                                       # XXX - different formats for diff clusters
+          memory   => $memory,                                      # XXX - different formats for diff clusters
           walltime => $walltime,
           build    => $build,
-          email    => $config->get($opts->{project}, 'email'),
-          job_name => $opts->{project} . $DASH . $bam->sample_id,    # XXX
-          account  => $config->get($opts->{cluster}, 'account'),
-          workdir  => File::Spec->join(),                            # XXX
+          email    => $config->get($project, 'email'),
+          job_name => $opts->{project} . $DASH . $bam->sample_id,
+          account  => $config->get($cluster, 'account'),
+          workdir  => $log_dir,
         },
         settings => {
-          tmp_dir         => File::Spec->join(),                                  # XXX
-          run_dir         => File::Spec->join(),                                  # XXX
-          job_log         => File::Spec->join(),                                  # XXX
-          project_dir     => File::Spec->join(),                                  # XXX
-          pipeline        => $config->get($opts->{project}, 'pipeline'),          # XXX
+          tmp_dir         => File::Spec->join('/tmp',            $opts->{project}),
+          run_dir         => $run_dir,
+          job_log         => File::Spec->join($bam->results_dir, q{job_log}),
+          project_dir     => $project_dir,
+          pipeline        => $config->get('pipelines',           $bam->center),
           delay           => $delay,
           threads         => $procs,
-          max_failed_runs => $config->get($opts->{project}, 'max_failed_runs'),
+          max_failed_runs => $config->get($project,      'max_failed_runs'),
           job_id          => $job_meta->id,
         },
         gotcloud => {
-          root    => File::Spec->join(),                                          # XXX
-          conf    => File::Spec->join(),                                          # XXX
-          ref_dir => File::Spec->join(),                                          # XXX
+          root    => $gotcloud_root,
+          conf    => $gotcloud_conf,
+          ref_dir => $gotcloud_ref,
         },
         bam => $bam,
       },
@@ -121,6 +155,7 @@ sub execute {
       submitted_at => DateTime->now(),
     );
 
+    say $fh->filename;
   }
 }
 

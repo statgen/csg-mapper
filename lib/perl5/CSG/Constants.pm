@@ -48,12 +48,24 @@ our %EXPORT_TAGS = (
       %SAMPLE_STATE
       )
   ],
+  basic => [
+    qw(
+      $EMPTY
+      $COMMA
+      $UNDERSCORE
+      $PERIOD
+      $TRUE
+      $FALSE
+      $PIPE
+      $DASH
+      )
+  ],
   mapping => [
     qw(
       $VALID_CLUSTER_REGEXPS
       @TIME_FORMAT_REGEXPS
       %SAMPLE_STATE
-    )
+      )
   ],
 );
 
@@ -69,6 +81,7 @@ Readonly::Scalar our $DASH       => q{-};
 Readonly::Scalar our $VALID_CLUSTER_REGEXPS => qr{csg|flux};
 
 Readonly::Array our @TIME_FORMAT_REGEXPS => (
+
   # dd-hh:mm:ss or dd:hh:mm:ss
   qr/(?<days>\d{1,2})(?:\-|:)(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2})/,
 

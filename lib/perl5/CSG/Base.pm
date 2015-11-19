@@ -9,6 +9,7 @@ our @IMPORT_MODULES = (
     Data::Dumper
     DateTime
     Readonly
+    autodie
     ),
   'English'         => [qw(-no_match_vars)],
   'List::MoreUtils' => [qw()],
@@ -31,6 +32,7 @@ our %IMPORT_BUNDLES = (
       File::Stat
       Path::Class
       ),
+    'File::Path'        => [qw(make_path)],
     'File::Slurp::Tiny' => [qw(read_file read_lines)],
   ],
   test => [

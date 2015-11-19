@@ -19,7 +19,7 @@ has 'sample_id'    => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_s
 has 'cram'         => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_cram');
 has 'crai'         => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_crai');
 has 'bam'          => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_bam');
-has 'results_path' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_results_path');
+has 'results_dir' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_results_dir');
 
 sub _build_bam {
   my ($self) = @_;
@@ -50,8 +50,10 @@ sub _build_host {
   return $host;
 }
 
+# FIXME - completely wrong atm
 # FIXME - $BAM_RESULTS_DIR is not defined yet
-sub _build_results_path {
+# FIXME - $CLUSTER_PREFIX  is not defined yet, maybe
+sub _build_results_dir {
   my ($self) = @_;
   return File::Spec->join($CLUSTER_PREFIX{$self->cluster}, $self->host, $BAM_RESULTS_DIR, $self->center, $self->pi,
     $self->sample_id);
