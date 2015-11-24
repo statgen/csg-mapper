@@ -4,6 +4,8 @@ requires 'Modern::Perl';
 requires 'Import::Base';
 requires 'Readonly';
 requires 'Template';
+requires 'Class::CSV';
+requires 'Try::Tiny';
 
 requires 'System::Command';
 requires 'IPC::System::Simple';

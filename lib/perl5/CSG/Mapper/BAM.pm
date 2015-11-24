@@ -8,26 +8,23 @@ use CSG::Mapper::Config;
 use Moose;
 
 has 'cluster' => (is => 'ro', isa => 'Str', required => 1);
-has 'id'      => (is => 'ro', isa => 'Int', required => 1);
 has 'center'  => (is => 'ro', isa => 'Str', required => 1);
 has 'rundir'  => (is => 'ro', isa => 'Str', required => 1);
 has 'name'    => (is => 'ro', isa => 'Str', required => 1);
 has 'pi'      => (is => 'ro', isa => 'Str', required => 1);
+has 'project' => (is => 'ro', isa => 'Str', required => 1);
 
-has 'host'         => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_host');
-has 'sample_id'    => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_sample_id');
-has 'cram'         => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_cram');
-has 'crai'         => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_crai');
-has 'bam'          => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_bam');
+has 'host'        => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_host');
+has 'sample_id'   => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_sample_id');
+has 'cram'        => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_cram');
+has 'crai'        => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_crai');
+has 'bam'         => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_bam');
 has 'results_dir' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_results_dir');
+has 'prefix'      => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_prefix');
 
 sub _build_bam {
   my ($self) = @_;
-
-  my $conf   = CSG::Mapper::Config->new();
-  my $prefix = $conf->get($self->cluster, 'prefix');
-
-  return File::Spec->join($BAM_FILE_PREFIX{$self->cluster}, $self->center, $self->rundir, $self->name);
+  return File::Spec->join($self->prefix, $self->center, $self->rundir, $self->name);
 }
 
 sub _build_sample_id {
@@ -38,8 +35,8 @@ sub _build_sample_id {
 sub _build_host {
   my ($self) = @_;
 
-  my $host = $BAM_HOST_PRIMARY;
-  my $center_path = File::Spec->join($BAM_FILE_PREFIX{$self->cluster}, $self->center);
+  my $host = undef;
+  my $center_path = File::Spec->join($self->prefix, $self->center);
 
   if (-l $center_path) {
     my $file  = Path::Class->file(readlink($center_path));
@@ -47,16 +44,13 @@ sub _build_host {
     $host = $comps[4];
   }
 
-  return $host;
+  return $host // 'topmed'; # FIXME
 }
 
 # FIXME - completely wrong atm
-# FIXME - $BAM_RESULTS_DIR is not defined yet
-# FIXME - $CLUSTER_PREFIX  is not defined yet, maybe
 sub _build_results_dir {
   my ($self) = @_;
-  return File::Spec->join($CLUSTER_PREFIX{$self->cluster}, $self->host, $BAM_RESULTS_DIR, $self->center, $self->pi,
-    $self->sample_id);
+  return File::Spec->join($self->prefix, $self->host, 'working', 'mapping', 'results', $self->center, $self->pi, $self->sample_id);
 }
 
 sub _build_cram {
@@ -66,6 +60,11 @@ sub _build_cram {
 
 sub _build_crai {
   return shift->cram . '.crai';
+}
+
+sub _build_prefix {
+  my $conf = CSG::Mapper::Config->new();
+  return $conf->get(shift->cluster, 'prefix');
 }
 
 sub is_complete {

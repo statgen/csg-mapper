@@ -10,6 +10,7 @@ our @IMPORT_MODULES = (
     DateTime
     Readonly
     autodie
+    Try::Tiny
     ),
   'English'         => [qw(-no_match_vars)],
   'List::MoreUtils' => [qw()],
@@ -34,6 +35,11 @@ our %IMPORT_BUNDLES = (
       ),
     'File::Path'        => [qw(make_path)],
     'File::Slurp::Tiny' => [qw(read_file read_lines)],
+  ],
+  parsers => [
+    qw(
+      Class::CSV
+    )
   ],
   test => [
     qw(

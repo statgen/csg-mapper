@@ -71,6 +71,12 @@ __PACKAGE__->table("samples");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 project_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 filename
 
   data_type: 'varchar'
@@ -95,6 +101,11 @@ __PACKAGE__->table("samples");
   default_value: 37
   is_nullable: 0
   size: 45
+
+=head2 fullpath
+
+  data_type: 'text'
+  is_nullable: 0
 
 =head2 exported_at
 
@@ -131,6 +142,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "host_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "project_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "filename",
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "run_dir",
@@ -139,6 +152,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "ref_build",
   { data_type => "varchar", default_value => 37, is_nullable => 0, size => 45 },
+  "fullpath",
+  { data_type => "text", is_nullable => 0 },
   "exported_at",
   {
     data_type => "datetime",
@@ -235,6 +250,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 project
+
+Type: belongs_to
+
+Related object: L<CSG::Mapper::DB::Schema::Result::Project>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "project",
+  "CSG::Mapper::DB::Schema::Result::Project",
+  { id => "project_id" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
 =head2 study
 
 Type: belongs_to
@@ -251,8 +281,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-12 14:23:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i6musxJANa4e1zedACo4Mw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-24 11:11:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1WnEg037uv1OZJ0QVTrLWw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

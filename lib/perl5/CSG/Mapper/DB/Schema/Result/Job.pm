@@ -85,6 +85,18 @@ __PACKAGE__->table("jobs");
   default_value: 0
   is_nullable: 1
 
+=head2 node
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
+
+=head2 delay
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 1
+
 =head2 submitted_at
 
   data_type: 'datetime'
@@ -140,6 +152,10 @@ __PACKAGE__->add_columns(
   "exit_code",
   { data_type => "integer", is_nullable => 1 },
   "elapsed",
+  { data_type => "integer", default_value => 0, is_nullable => 1 },
+  "node",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "delay",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
   "submitted_at",
   {
@@ -222,8 +238,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-12 15:12:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+vRkjZU1imu11uUcKHybEQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-24 11:03:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Jn8PT0sq3lokLCC7GDBp2g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

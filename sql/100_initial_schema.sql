@@ -72,6 +72,20 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `csg_mapper`.`projects`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `csg_mapper`.`projects` ;
+
+CREATE TABLE IF NOT EXISTS `csg_mapper`.`projects` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modified_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `csg_mapper`.`samples`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `csg_mapper`.`samples` ;
@@ -83,10 +97,12 @@ CREATE TABLE IF NOT EXISTS `csg_mapper`.`samples` (
   `study_id` INT NOT NULL,
   `pi_id` INT NOT NULL,
   `host_id` INT NOT NULL,
+  `project_id` INT NOT NULL,
   `filename` VARCHAR(45) NOT NULL,
   `run_dir` VARCHAR(45) NOT NULL,
   `state` INT NOT NULL DEFAULT 0,
   `ref_build` VARCHAR(45) NOT NULL DEFAULT '37',
+  `fullpath` TEXT NOT NULL,
   `exported_at` DATETIME NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -95,6 +111,7 @@ CREATE TABLE IF NOT EXISTS `csg_mapper`.`samples` (
   INDEX `fk_samples_2_idx` (`study_id` ASC),
   INDEX `fk_samples_3_idx` (`host_id` ASC),
   INDEX `fk_samples_4_idx` (`pi_id` ASC),
+  INDEX `fk_samples_5_idx` (`project_id` ASC),
   CONSTRAINT `fk_samples_1`
     FOREIGN KEY (`center_id`)
     REFERENCES `csg_mapper`.`centers` (`id`)
@@ -113,6 +130,11 @@ CREATE TABLE IF NOT EXISTS `csg_mapper`.`samples` (
   CONSTRAINT `fk_samples_4`
     FOREIGN KEY (`pi_id`)
     REFERENCES `csg_mapper`.`pis` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_samples_5`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `csg_mapper`.`projects` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -133,6 +155,8 @@ CREATE TABLE IF NOT EXISTS `csg_mapper`.`jobs` (
   `walltime` VARCHAR(45) NOT NULL,
   `exit_code` INT NULL,
   `elapsed` INT(11) NULL DEFAULT 0,
+  `node` VARCHAR(45) NULL,
+  `delay` INT NULL DEFAULT 0,
   `submitted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `started_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   `ended_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,

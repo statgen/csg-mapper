@@ -69,7 +69,6 @@ sub execute {
 
     my $bam = CSG::Mapper::Bam->new(
       cluster => $self->app->global_options->{cluster},
-      id      => $sample->id,
       center  => $sample->center,
       name    => $sample->filename,
       pi      => $sample->pi,
