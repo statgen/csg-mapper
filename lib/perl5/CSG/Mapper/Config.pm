@@ -40,6 +40,11 @@ sub get {
   return $self->conf->{$section}->{$name};
 }
 
+sub has_category {
+  my ($self, $category) = @_;
+  return exists $self->conf->{$category};
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

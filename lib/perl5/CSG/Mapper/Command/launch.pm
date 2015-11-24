@@ -25,7 +25,10 @@ sub validate_args {
   my ($self, $opts, $args) = @_;
 
   my $schema = CSG::Mapper::DB->new();
+  my $config = CSG::Mapper::Config->new();
+
   $self->{stash}->{schema} = $schema;
+  $self->{stash}->{config} = $config;
 
   if ($self->app->global_options->{cluster}) {
     unless ($self->app->global_options->{cluster} =~ /$VALID_CLUSTER_REGEXPS/) {
@@ -37,6 +40,10 @@ sub validate_args {
 
   unless ($self->app->global_options->{project}) {
     $self->usage_error('Project is required');
+  } else {
+    unless ($config->has_category($self->app->global_options->{project})) {
+      $self->usage_error('Unknown project');
+    }
   }
 }
 
@@ -45,11 +52,12 @@ sub execute {
 
   my $jobs   = 0;
   my $delay  = int(rand(120));
-  my $config = CSG::Mapper::Config->new();
   my $schema = $self->{stash}->{schema};
+  my $config = $self->{stash}->{config};
 
-  my $cluster = $self->app->global_options->{cluster};
-  my $project = $self->app->global_options->{project};
+  my $cluster     = $self->app->global_options->{cluster};
+  my $project     = $self->app->global_options->{project};
+  my $project_dir = qq{$FindBin::Bin/../};
 
   my $procs    = $opts->{procs}    // $config->get($project, 'procs');
   my $memory   = $opts->{memory}   // $config->get($project, 'memory');
@@ -68,24 +76,23 @@ sub execute {
       rundir  => $sample->run_dir,
     );
 
-    my $fh          = File::Temp->new();
-    my $tt          = Template->new(INCLUDE_PATH => qq($FindBin::Bin/../templates));
-    my $job         = CSG::Mapper::Job->new(cluster => $opts->{cluster});
-    my $project_dir = qq{$FindBin::Bin/../};
+    my $fh = File::Temp->new(UNLINK => 0);    # TODO - use the sample id to create a the batch file in the run_dir or workdir
+    my $tt = Template->new(INCLUDE_PATH => qq($FindBin::Bin/../templates));
+    my $job = CSG::Mapper::Job->new(cluster => $opts->{cluster});
 
     my $basedir = File::Spec->join($config->get($cluster, 'prefix'), $bam->host, 'mapping');
     unless (-e $basedir) {
-      make_path($basedir);    # TODO - add logging
+      make_path($basedir);                    # TODO - add logging
     }
 
-    my $log_dir = File::Spec->join($basedir, $config->get($cluster, 'workdir'), $bam->sample_id);
+    my $log_dir = File::Spec->join($basedir, $config->get($project_dir, 'workdir'), $bam->sample_id);
     unless (-e $log_dir) {
-      make_path($log_dir);    # TODO - add logging
+      make_path($log_dir);                    # TODO - add logging
     }
 
-    my $run_dir = File::Spec->join($basedir, $config->get($cluster, 'run_dir'));
+    my $run_dir = File::Spec->join($basedir, $config->get($project_dir, 'run_dir'));
     unless (-e $run_dir) {
-      make_path($run_dir);    # TODO - add logging
+      make_path($run_dir);                    # TODO - add logging
     }
 
     my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf'));
@@ -133,7 +140,7 @@ sub execute {
           pipeline        => $config->get('pipelines',           $bam->center),
           delay           => $delay,
           threads         => $procs,
-          max_failed_runs => $config->get($project,      'max_failed_runs'),
+          max_failed_runs => $config->get($project,              'max_failed_runs'),
           job_id          => $job_meta->id,
         },
         gotcloud => {
@@ -145,7 +152,6 @@ sub execute {
       },
       $fh->filename,
     );
-
 
     # XXX - this might throw an exception? not yet but maybe if it fails to submit the job?
     $job->submit($fh->filename);
