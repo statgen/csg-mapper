@@ -1,0 +1,31 @@
+<database>
+  host = localhost
+  port = 3306
+  user = foo
+  pass = bar
+  db   = csg_mapper
+</database>
+
+<pipelines>
+  uw      = cleanUpBam2fastq
+  broad   = binBam2fastq
+  nygc    = binBam2fastq
+  default = bam2fastq
+</pipelines>
+
+<projects>
+  email           = topmed-alignment@umich.edu
+  procs           = 6
+  memory_per_core = 4
+  max_failed_runs = 10
+  ref_build       = 37
+
+  <topmed>
+    <csg>
+    </csg>
+
+    <flux>
+    </flux>
+  </topmed>
+</projects>
+
