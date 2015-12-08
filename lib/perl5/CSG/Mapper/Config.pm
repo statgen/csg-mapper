@@ -9,7 +9,7 @@ use CSG::Base qw(config);
 use CSG::Constants;
 use CSG::Types;
 
-Readonly::Scalar my $DEFAULT_CONFIG => qq($FindBin::Bin/../etc/config.ini);
+Readonly::Scalar my $DEFAULT_CONFIG => qq($FindBin::Bin/../etc/mapper.ini);
 
 has '_file' => (
   is      => 'ro',
