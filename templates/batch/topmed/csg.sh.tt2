@@ -15,8 +15,6 @@ JOB_ID=$SLURM_JOB_ID
 NODELIST=$SLURM_JOB_NODELIST
 TMP_DIR=[% settings.tmp_dir %]
 
-csg-mapper update --id [% settings.job_id %] --start --job-id $JOB_ID --node $NODELIST
-
 if [ -d $TMP_DIR ]; then
   for id in $(ls -1 $TMP_DIR); do
     job_state="$(sacct -j $id -X -n -o state%7)"
@@ -27,4 +25,4 @@ if [ -d $TMP_DIR ]; then
   done
 fi
 
-[% INCLUDE _job %]
+[% INCLUDE _job.tt2 %]

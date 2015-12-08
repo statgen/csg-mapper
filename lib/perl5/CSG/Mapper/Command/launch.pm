@@ -6,10 +6,11 @@ package CSG::Mapper::Command::launch;
 
 use CSG::Mapper -command;
 
-use CSG::Base;
+use CSG::Base qw(file templates);
 use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
+use CSG::Mapper::Job;
 
 sub opt_spec {
   return (
@@ -60,24 +61,24 @@ sub execute {
   my $project_dir = qq{$FindBin::Bin/../};
 
   my $procs    = $opts->{procs}    // $config->get($project, 'procs');
-  my $memory   = $opts->{memory}   // $config->get($project, 'memory');
+  my $memory   = $opts->{memory}   // $config->get($project, 'memory_per_core');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
 
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
-    my $bam = CSG::Mapper::Bam->new(
+    my $bam = CSG::Mapper::BAM->new(
       cluster => $self->app->global_options->{cluster},
-      center  => $sample->center,
+      project => $self->app->global_options->{project},
+      center  => $sample->center->name,
       name    => $sample->filename,
-      pi      => $sample->pi,
+      pi      => $sample->pi->name,
       rundir  => $sample->run_dir,
     );
 
     my $fh = File::Temp->new(UNLINK => 0);    # TODO - use the sample id to create a the batch file in the run_dir or workdir
-    my $tt = Template->new(INCLUDE_PATH => qq($FindBin::Bin/../templates));
-    my $job = CSG::Mapper::Job->new(cluster => $opts->{cluster});
+    my $job = CSG::Mapper::Job->new(cluster => $cluster);
 
     my $basedir = File::Spec->join($config->get($cluster, 'prefix'), $bam->host, 'mapping');
     unless (-e $basedir) {
@@ -111,7 +112,7 @@ sub execute {
 
     my $job_meta = $sample->add_to_jobs(
       {
-        cluster  => $opts->{cluster},
+        cluster  => $cluster,
         procs    => $procs,
         memory   => $memory,
         walltime => $walltime,
@@ -119,20 +120,21 @@ sub execute {
       }
     );
 
+    my $tt = Template->new(INCLUDE_PATH => qq($FindBin::Bin/../templates/batch/$project));
     $tt->process(
-      "batch/$opts->{cluster}.tt2", {
+      qq{$cluster.sh.tt2}, {
         job => {
           procs    => $procs,
           memory   => $memory,                                      # XXX - different formats for diff clusters
           walltime => $walltime,
           build    => $build,
           email    => $config->get($project, 'email'),
-          job_name => $opts->{project} . $DASH . $bam->sample_id,
+          job_name => $project . $DASH . 42,
           account  => $config->get($cluster, 'account'),
           workdir  => $log_dir,
         },
         settings => {
-          tmp_dir         => File::Spec->join('/tmp',            $opts->{project}),
+          tmp_dir         => File::Spec->join('/tmp',            $project),
           run_dir         => $run_dir,
           job_log         => File::Spec->join($bam->results_dir, q{job_log}),
           project_dir     => $project_dir,
@@ -140,7 +142,7 @@ sub execute {
           delay           => $delay,
           threads         => $procs,
           max_failed_runs => $config->get($project,              'max_failed_runs'),
-          job_id          => $job_meta->id,
+          meta_id         => $job_meta->id,
         },
         gotcloud => {
           root    => $gotcloud_root,
@@ -150,17 +152,23 @@ sub execute {
         bam => $bam,
       },
       $fh->filename,
-    );
+    ) or die $Template::ERROR;
 
     # XXX - this might throw an exception? not yet but maybe if it fails to submit the job?
     $job->submit($fh->filename);
 
     $sample->update(
-      state        => $SAMPLE_STATE{submitted},
-      submitted_at => DateTime->now(),
+      {
+        state => $SAMPLE_STATE{submitted},
+      }
     );
 
-    say $fh->filename;
+    $job_meta->update(
+      {
+        job_id       => 42,
+        submitted_at => DateTime->now(),
+      }
+    );
   }
 }
 

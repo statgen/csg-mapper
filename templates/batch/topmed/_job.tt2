@@ -10,7 +10,7 @@ ALIGN_THREADS=[% settings.threads %]
 
 SAMPLE_ID=[% bam.sample_id %]
 BAM_CENTER=[% bam.center %]
-BAM_FILE=[% bam.path %]
+BAM_FILE=[% bam.bam %]
 BAM_PI=[% bam.pi %]
 BAM_HOST=[% bam.host %]
 BAM_PIPELINE=[% settings.pipeline %]
@@ -22,9 +22,14 @@ TMP_DIR="${TMP_DIR}/${JOB_ID}"
 FASTQ_LIST="${TMP_DIR}/fastq.list"
 BAM_LIST="${TMP_DIR}/bam.list"
 
-echo "
-[$(date)] Starting remapping pipeline
+export PERL_CARTON_PATH=${PROJECT_DIR}/local
+export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:${PROJECT_DIR}/lib/perl5:$PERL5LIB
+export PATH=${GOTCLOUD_ROOT}:${PROJECT_DIR}/bin:${PATH}
 
+mapper update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST
+mapper log --meta-id [% settings.meta_id %] --message 'starting remapping pipeline'
+
+echo "
 OUT_DIR:      $OUT_DIR
 TMP_DIR:      $TMP_DIR
 REF_DIR:      $REF_DIR
@@ -44,70 +49,45 @@ GC_CONF:      $GOTCLOUD_CONF
 GC_ROOT:      $GOTCLOUD_ROOT
 "
 
-export PERL_CARTON_PATH=${PROJECT_DIR}/local
-export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:${PROJECT_DIR}/lib/perl5:$PERL5LIB
-export PATH=${GOTCLOUD_ROOT}:${PROJECT_DIR}/bin:${PATH}
-
 if [ -e $OUT_DIR ]; then
-  echo "[$(date)] Found existing OUT_DIR deleting"
+  mapper log --meta-id [% settings.meta_id %] --message 'found existing OUT_DIR deleting'
   rm -rfv $OUT_DIR
 
   if [ $? -ne 0 ]; then
     echo "[$(date)] Failed to remove existing OUT_DIR"
+    mapper log --meta-id [% settings.meta_id %] --message 'failed to remove existing OUT_DIR' --critical
+    mapper update --meta-id [% settings.meta_id %] --state failed
     exit 1
 fi
 
-echo "[$(date)] Creating OUT_DIR and TMP_DIR"
+mapper log --meta-id [% settings.meta_id %] --message 'creating OUT_DIR and TMP_DIR'
 mkdir -p $OUT_DIR $TMP_DIR
 
 if [ $? -ne 0 ]; then
-  echo "[$(date)] Failed to create OUT_DIR and or TMP_DIR"
+  mapper log --meta-id [% setings.meta_id %] --message 'failed to create OUT_DIR and or TMP_DIR' --critical
+  mapper update --meta-id [% settings.meta_id %] --state failed
   exit 1
 fi
 
-echo "[$(date)] Setting permissions on TMP_DIR"
+mapper log --meta-id [% settings.meta_id %] --message 'setting permissions on TMP_DIR'
 chmod 750 $TMP_DIR
 
 if [ $? -ne 0 ]; then
-  echo "[$(date)] Failed to set permissions on TMP_DIR"
+  mapper log --meta-id [% settings.meta_id %] --message 'failed to set permissions on TMP_DIR' --critical
+  mapper update --meta-id [% settings.meta_id %] --state failed
   exit 1
 fi
 
-echo "[$(date)] Creating BAM_LIST"
+mapper log --meta-id [% settings.meta_id %] --message 'creating BAM_LIST'
 echo "$BAM_ID $BAM_FILE" > $BAM_LIST
 
-# TODO - there has got to be a better way
-#      - make csg-mapper emit a yaml logfile of the job meta data?
-# csg-mapper show --job-id $JOB_ID --info > $JOB_LOG
-echo "[$(date)] Recording job info"
-echo "---" >> $JOB_LOG
-echo "  start: $(date)" >> $JOB_LOG
-echo "  jobid: $JOB_ID" >> $JOB_LOG
-echo "  out_dir: $OUT_DIR" >> $JOB_LOG
-echo "  tmp_dir: $TMP_DIR" >> $JOB_LOG
-echo "  ref_dir: $REF_DIR" >> $JOB_LOG
-echo "  run_dir: $RUN_DIR" >> $JOB_LOG
-echo "  pipeline: $BAM_PIPELINE" >> $JOB_LOG
-echo "  gc_conf: $GOTCLOUD_CONF" >> $JOB_LOG
-echo "  gc_root: $GOTCLOUD_ROOT" >> $JOB_LOG
-echo "  gotcloud: $(which gotcloud)" >> $JOB_LOG
-echo "  delay: $DELAY" >> $JOB_LOG
-echo "  bam: $BAM_FILE" >> $JOB_LOG
-echo "  bam_id: $BAM_ID" >> $JOB_LOG
-echo "  bam_center: $BAM_CENTER" >> $JOB_LOG
-echo "  bam_list: $BAM_LIST" >> $JOB_LOG
-echo "  bam_pi: $BAM_PI" >> $JOB_LOG
-echo "  bam_host: $BAM_HOST" >> $JOB_LOG
-echo "  fastq_list: $FASTQ_LIST" >> $JOB_LOG
-echo "  cluster: csg" >> $JOB_LOG
-echo "  node: $NODELIST" >> $JOB_LOG
-
 if [ ! -z $DELAY ]; then
-  echo "[$(date)] Delaying execution for ${DELAY} minutes"
+  mapper log --meta-id [% settings.meta_id %] --message "delaying execution for $DELAY minutes"
   sleep "${DELAY}m"
 fi
 
-echo "[$(date)] Beginning gotcloud pipeline"
+mapper show --meta-id [% settings.meta_id %] --info > $JOB_LOG
+mapper log --meta-id [% settings.meta_id %] --message 'beginning bam2fastq pipeline'
 gotcloud pipe              \
   --gcroot  $GOTCLOUD_ROOT \
   --name    $BAM_PIPELINE      \
@@ -117,14 +97,13 @@ gotcloud pipe              \
   --outdir  $TMP_DIR
 
 rc=$?
-
-echo "  pipe_rc: $rc" >> $JOB_LOG
+mapper log --meta-id [% settings.meta_id %] --message "pipe_rc: $rc"
 
 if [ "$rc" -ne 0 ]; then
-  echo "[$(date)] $BAM_PIPELINE failed with exit code $rc" 1>&2
-  csg-mapper update --job-id $JOB_ID --state failed
+  mapper log --meta-id [% settings.meta_id %] --message "$BAM_PIPELINE failed with exit code $rc" --critical
+  mapper update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
 else
-  echo "[$(date)] Begining gotcloud alignment"
+  mapper log --meta-id [% settings.meta_id %] --message 'begining gotcloud alignment'
   gotcloud align                      \
     --gcroot       $GOTCLOUD_ROOT     \
     --conf         $GOTCLOUD_CONF     \
@@ -136,19 +115,19 @@ else
     --maxlocaljobs $ALIGN_THREADS
 
   rc=$?
-  echo "  align_rc: $rc" >> $JOB_LOG
+  mapper log --meta-id [% settings.meta_id %] --message "align_rc: $rc"
 
   if [ "$rc" -ne 0 ]; then
-    echo "[$(date)] Alignment failed with exit code $rc" 1>&2
-    csg-mapper update --job-id $JOB_ID --state failed
+    mapper update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
+    mapper log --meta-id [% settings.meta_id %] --message "alignment failed with exit code $rc" --critical
   else
-    echo "[$(date)] Alignment completed"
-    csg-mapper update --job-id $JOB_ID --state failed
+    mapper update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
+    mapper log --meta-id [% settings.meta_id %] --message 'alignment completed'
   fi
 fi
 
 if [ "$rc" -ne 0 ]; then
-  echo "[$(date)] Alignment failed, moving TMP_DIR to RUN_DIR"
+  mapper log --meta-id [% settings.meta_id %] --message 'alignment failed, moving TMP_DIR to RUN_DIR' --critical
   mv $TMP_DIR $RUN_DIR
 
   max_runs=[% settings.max_failed_runs %]
@@ -159,7 +138,7 @@ if [ "$rc" -ne 0 ]; then
     count=0
     for run in $runs; do
       if [ $(($run_count - $max_runs)) -gt $count ]; then
-        echo "[$(date)] Purging run [$(basename $run)] from RUN_DIR"
+        mapper log --meta-id [% settings.meta_id %] --message "purging run [$(basename $run)] from RUN_DIR"
         rm -rf $run
       fi
 
@@ -167,15 +146,12 @@ if [ "$rc" -ne 0 ]; then
     done
   fi
 else
-  echo "[$(date)] Purging $TMP_DIR on $NODELIST"
+  mapper log --meta-id [% settings.meta_id %] --message "purging $TMP_DIR on $NODELIST"
   rm -rf $TMP_DIR
 fi
 
-echo "[$(date)] Exiting [RC: $rc]"
-echo "  end: $(date)" >> $JOB_LOG
-
-# TODO - record job end time
-#      - record exit code as well
+mapper log --meta-id [% settings.meta_id %] --message "remapping complete: $rc"
+mapper update --meta-id [% settings.meta_id %] --state completed --exit-code $rc
 
 exit $rc
 

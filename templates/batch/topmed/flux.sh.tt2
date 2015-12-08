@@ -18,8 +18,6 @@ JOB_ID=$PBS_JOBID
 NODELIST=$(cat $PBS_NODEFILE)
 TMP_DIR=[% settings.tmp_dir %]
 
-csg-mapper update --id [% settings.job_id %] --start --job-id $JOB_ID --node $NODELIST
-
 if [ -d $TMP_DIR ]; then
   for id in $(ls -1 $TMP_DIR); do
     qstat -f -e $id > /dev/null 2>&1

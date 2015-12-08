@@ -41,6 +41,11 @@ our %IMPORT_BUNDLES = (
       Class::CSV
     )
   ],
+  templates => [
+    qw(
+      Template
+    )
+  ],
   test => [
     qw(
       Test::Most
