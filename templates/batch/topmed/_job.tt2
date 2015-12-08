@@ -23,8 +23,8 @@ FASTQ_LIST="${TMP_DIR}/fastq.list"
 BAM_LIST="${TMP_DIR}/bam.list"
 
 export PERL_CARTON_PATH=${PROJECT_DIR}/local
-export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:${PROJECT_DIR}/lib/perl5:$PERL5LIB
-export PATH=${GOTCLOUD_ROOT}:${PROJECT_DIR}/bin:${PATH}
+export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:${PROJECT_DIR}/lib/perl5:${PERL5LIB}
+export PATH=${GOTCLOUD_ROOT}:${PROJECT_DIR}/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
 mapper update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST
 mapper log --meta-id [% settings.meta_id %] --message 'starting remapping pipeline'
