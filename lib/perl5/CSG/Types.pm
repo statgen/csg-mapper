@@ -15,6 +15,15 @@ subtype 'FileOnDisk',
   where {-s $_},
   message {'invalid file'};
 
+subtype 'ValidJobFactory',
+  as 'Object',
+  where {
+    $_->isa('CSG::Mapper::Job::Factory::Implementation::csg')
+      or
+    $_->isa('CSG::Mapper::Job::Factory::Implementation::flux')
+  },
+  message { 'is not a valid cluster job factory implementation' };
+
 no Moose::Util::TypeConstraints;
 
 1;

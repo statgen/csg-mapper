@@ -41,7 +41,7 @@ sub state {
 }
 
 sub submit {
-  # TODO - need to parse the output for the qsub command and set the job_id
+  my ($self, $file) = @_;
   return 1;
 }
 

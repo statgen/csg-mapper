@@ -58,4 +58,15 @@ sub test_job_id : Test(2) {
   }
 }
 
+sub test_submit : Test(2) {
+  my ($test) = @_;
+
+  for my $key (keys %{$test->{fixtures}->{clusters}}) {
+    my $fixture = $test->{fixtures}->{$key};
+    my $job     = $test->{fixtures}->{jobs}->{$key};
+
+    can_ok($job, 'submit');
+  }
+}
+
 1;
