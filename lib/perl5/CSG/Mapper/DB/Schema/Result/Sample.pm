@@ -98,7 +98,7 @@ __PACKAGE__->table("samples");
 =head2 ref_build
 
   data_type: 'varchar'
-  default_value: 37
+  default_value: 38
   is_nullable: 0
   size: 45
 
@@ -117,7 +117,6 @@ __PACKAGE__->table("samples");
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  default_value: 'CURRENT_TIMESTAMP'
   is_nullable: 0
 
 =head2 modified_at
@@ -151,7 +150,7 @@ __PACKAGE__->add_columns(
   "state",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "ref_build",
-  { data_type => "varchar", default_value => 37, is_nullable => 0, size => 45 },
+  { data_type => "varchar", default_value => 38, is_nullable => 0, size => 45 },
   "fullpath",
   { data_type => "text", is_nullable => 0 },
   "exported_at",
@@ -164,7 +163,6 @@ __PACKAGE__->add_columns(
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 0,
   },
   "modified_at",
@@ -281,8 +279,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-24 11:11:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1WnEg037uv1OZJ0QVTrLWw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-09 10:18:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dZnd/1XEleJs0HwzqQc48A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

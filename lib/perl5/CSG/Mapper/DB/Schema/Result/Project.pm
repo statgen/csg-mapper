@@ -51,7 +51,6 @@ __PACKAGE__->table("projects");
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  default_value: 'CURRENT_TIMESTAMP'
   is_nullable: 0
 
 =head2 modified_at
@@ -72,7 +71,6 @@ __PACKAGE__->add_columns(
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 0,
   },
   "modified_at",
@@ -114,8 +112,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-24 11:11:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L+HPxd+SIFYQMTreK4lSFA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-09 10:18:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JueH6qRLZzPdywDcJ2Jj6A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -101,28 +101,24 @@ __PACKAGE__->table("jobs");
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  default_value: 'CURRENT_TIMESTAMP'
   is_nullable: 0
 
 =head2 started_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  default_value: 'CURRENT_TIMESTAMP'
   is_nullable: 1
 
 =head2 ended_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  default_value: 'CURRENT_TIMESTAMP'
   is_nullable: 1
 
 =head2 created_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  default_value: 'CURRENT_TIMESTAMP'
   is_nullable: 0
 
 =head2 modified_at
@@ -161,28 +157,24 @@ __PACKAGE__->add_columns(
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 0,
   },
   "started_at",
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 1,
   },
   "ended_at",
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 1,
   },
   "created_at",
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 0,
   },
   "modified_at",
@@ -206,20 +198,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<job_id_UNIQUE>
-
-=over 4
-
-=item * L</job_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("job_id_UNIQUE", ["job_id"]);
-
 =head1 RELATIONS
 
 =head2 sample
@@ -238,8 +216,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-24 11:03:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Jn8PT0sq3lokLCC7GDBp2g
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-09 10:18:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3nRbR7AMNeOK7O96aZ3GDg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
