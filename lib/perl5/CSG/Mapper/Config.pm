@@ -1,8 +1,5 @@
 package CSG::Mapper::Config;
 
-# TODO - make this a singleton, maybe
-# TODO - build class methods with MooseX::ClassAttribute
-
 use Moose;
 
 use CSG::Base qw(config);
@@ -37,7 +34,9 @@ sub _build_dsn {
 sub get {
   my ($self, $category, $name) = @_;
   my $section = ($category eq q{global}) ? $UNDERSCORE : $category;
-  return $self->conf->{$section}->{$name};
+  my $value   = $self->conf->{$section}->{$name};
+  croak 'Undefined value' unless defined $value;
+  return $value;
 }
 
 sub has_category {

@@ -1,8 +1,11 @@
 package CSG::Mapper::Command::launch;
 
 # TODO - need logging
-# TODO - add dry-run support
-# TODO - add support to output the batch script but not submit
+#      - add dry-run support
+#      - add support to output the batch script but not submit
+#      - add logging
+#      - try/catch on job submission
+#      - handle memory format differences
 
 use CSG::Mapper -command;
 
@@ -19,6 +22,7 @@ sub opt_spec {
     ['memory|m=i',   'Amount of memory to request, in MB'],
     ['walltime|w=i', 'Amount of wallclock time for this job'],
     ['build|b=i',    'Reference build to use (ie; 37 or 38)'],
+    ['tmp-dir|t=s',  'Local temporary disk locaiton (defaults to /tmp)'],
   );
 }
 
@@ -46,6 +50,12 @@ sub validate_args {
       $self->usage_error('Unknown project');
     }
   }
+
+  if ($opts->{'tmp-dir'}) {
+    unless (-e $opts->{'tmp-dir'} and -r $opts->{'tmp-dir'}) {
+      $self->usage_error('Temporary disk space does not exist or is not writable');
+    }
+  }
 }
 
 sub execute {
@@ -56,58 +66,51 @@ sub execute {
   my $schema = $self->{stash}->{schema};
   my $config = $self->{stash}->{config};
 
-  my $cluster     = $self->app->global_options->{cluster};
-  my $project     = $self->app->global_options->{project};
+  my $cluster = $self->app->global_options->{cluster};
+  my $project = $self->app->global_options->{project};
+
   my $project_dir = qq{$FindBin::Bin/../};
+  my $prefix      = $config->get($cluster, 'prefix');
+  my $workdir     = $config->get($project, 'workdir');
 
   my $procs    = $opts->{procs}    // $config->get($project, 'procs');
   my $memory   = $opts->{memory}   // $config->get($project, 'memory_per_core');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
+  my $tmp_dir = $opts->{'tmp-dir'} // q{/tmp};
 
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
-    my $bam = CSG::Mapper::BAM->new(
-      cluster => $self->app->global_options->{cluster},
-      project => $self->app->global_options->{project},
-      center  => $sample->center->name,
-      name    => $sample->filename,
-      pi      => $sample->pi->name,
-      rundir  => $sample->run_dir,
-    );
-
-    my $fh = File::Temp->new(UNLINK => 0);    # TODO - use the sample id to create a the batch file in the run_dir or workdir
-    my $job = CSG::Mapper::Job->new(cluster => $cluster);
-
-    my $basedir = File::Spec->join($config->get($cluster, 'prefix'), $bam->host, 'mapping');
+    # XXX - this can't always be the project node
+    my $basedir = File::Spec->join($prefix, $project, $workdir);
     unless (-e $basedir) {
-      make_path($basedir);                    # TODO - add logging
+      make_path($basedir);
     }
 
-    my $log_dir = File::Spec->join($basedir, $config->get($project_dir, 'workdir'), $bam->sample_id);
+    my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample->center->name, $sample->pi->name, $sample->sample_id);
     unless (-e $log_dir) {
-      make_path($log_dir);                    # TODO - add logging
+      make_path($log_dir);
     }
 
-    my $run_dir = File::Spec->join($basedir, $config->get($project_dir, 'run_dir'));
+    my $run_dir = File::Spec->join($basedir, $config->get($project, 'run_dir'));
     unless (-e $run_dir) {
-      make_path($run_dir);                    # TODO - add logging
+      make_path($run_dir);
     }
 
     my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf'));
     unless (-e $gotcloud_conf) {
-      die qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};    # TODO - add logging
+      die qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};
     }
 
-    my $gotcloud_root = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_root'));
+    my $gotcloud_root = File::Spec->join($basedir, $config->get($cluster, 'gotcloud_root'));
     unless (-e $gotcloud_root) {
-      die qq{GOTCLOUD_ROOT [$gotcloud_root] does not exist!};     # TODO - add logging
+      die qq{GOTCLOUD_ROOT [$gotcloud_root] does not exist!};
     }
 
-    my $gotcloud_ref = $config->get('gotcloud', qq{build${build}_ref_dir});
+    my $gotcloud_ref = File::Spec->join($prefix, $config->get('gotcloud', qq{build${build}_ref_dir}));
     unless (-e $gotcloud_ref) {
-      die qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};    # TODO - add logging
+      die qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
 
     my $job_meta = $sample->add_to_jobs(
@@ -120,42 +123,48 @@ sub execute {
       }
     );
 
-    my $tt = Template->new(INCLUDE_PATH => qq($FindBin::Bin/../templates/batch/$project));
+    my $results_dir = File::Spec->join($basedir, $config->get($project, 'results_dir'), $sample->center->name, $sample->pi->name, $sample->sample_id);
+    my $job_file = File::Spec->join($run_dir, $sample->sample_id . qq{.$cluster.sh});
+    my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
     $tt->process(
       qq{$cluster.sh.tt2}, {
         job => {
           procs    => $procs,
-          memory   => $memory,                                      # XXX - different formats for diff clusters
+          memory   => $memory,
           walltime => $walltime,
           build    => $build,
           email    => $config->get($project, 'email'),
-          job_name => $project . $DASH . 42,
+          job_name => $project . q{-} . $sample->sample_id,
           account  => $config->get($cluster, 'account'),
           workdir  => $log_dir,
         },
         settings => {
-          tmp_dir         => File::Spec->join('/tmp',            $project),
+          tmp_dir         => File::Spec->join($tmp_dir,     $project),
+          job_log         => File::Spec->join($results_dir, q{job.log}),
+          pipeline        => $config->get('pipelines',      $sample->center->name),
+          max_failed_runs => $config->get($project,         'max_failed_runs'),
+          out_dir         => $results_dir,
           run_dir         => $run_dir,
-          job_log         => File::Spec->join($bam->results_dir, q{job_log}),
           project_dir     => $project_dir,
-          pipeline        => $config->get('pipelines',           $bam->center),
           delay           => $delay,
           threads         => $procs,
-          max_failed_runs => $config->get($project,              'max_failed_runs'),
           meta_id         => $job_meta->id,
+          mapper_cmd      => $0,
         },
         gotcloud => {
           root    => $gotcloud_root,
           conf    => $gotcloud_conf,
           ref_dir => $gotcloud_ref,
+          cmd     => File::Spec->join($gotcloud_root, 'bin', 'gotcloud'),
         },
-        bam => $bam,
+        sample => $sample,
       },
-      $fh->filename,
-    ) or die $Template::ERROR;
+      $job_file
+      )
+      or die $Template::ERROR;
 
-    # XXX - this might throw an exception? not yet but maybe if it fails to submit the job?
-    $job->submit($fh->filename);
+    my $job = CSG::Mapper::Job->new(cluster => $cluster);
+    $job->submit($job_file);
 
     $sample->update(
       {

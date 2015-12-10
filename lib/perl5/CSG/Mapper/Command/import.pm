@@ -1,9 +1,8 @@
 package CSG::Mapper::Command::import;
 
 use CSG::Mapper -command;
-use CSG::Base qw(parsers);
+use CSG::Base qw(parsers file);
 use CSG::Constants qw(:mapping);
-use CSG::Mapper::BAM;
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
@@ -56,26 +55,31 @@ sub validate_args {
 sub execute {
   my ($self, $opts, $args) = @_;
 
-  my $schema = CSG::Mapper::DB->new();
-  my @lines  = @{$self->{stash}->{csv}->lines()};
+  my $config  = CSG::Mapper::Config->new();
+  my $schema  = CSG::Mapper::DB->new();
+  my @lines   = @{$self->{stash}->{csv}->lines()};
+  my $project = $self->app->global_options->{project};
+  my $cluster = $self->app->global_options->{cluster};
 
   shift @lines if $opts->{headers};
 
   for my $line (@lines) {
-    my $bam = CSG::Mapper::BAM->new(
-      cluster => $self->app->global_options->{cluster},
-      project => $self->app->global_options->{project},
-      center  => $line->center,
-      rundir  => $line->run_dir,
-      name    => $line->filename,
-      pi      => $line->pi,
-    );
+    my $hostname    = $project;
+    my $incoming    = File::Spec->join($config->get($cluster, 'prefix'), $project, $config->get($project, 'incoming_dir'));
+    my $center_path = File::Spec->join($incoming, $line->center);
 
-    my $project = $schema->resultset('Project')->find_or_create({name => $bam->project});
-    my $center = $schema->resultset('Center')->find_or_create({name => $bam->center});
-    my $study = $schema->resultset('Study')->find_or_create({name => $line->study});
-    my $host = $schema->resultset('Host')->find_or_create({name => $bam->host});
-    my $pi = $schema->resultset('Pi')->find_or_create({name => $bam->pi});
+    if (-l $center_path) {
+      my $file  = Path::Class->file(readlink($center_path));
+      my @comps = $file->components();
+
+      $hostname = $comps[4];
+    }
+
+    my $proj   = $schema->resultset('Project')->find_or_create({name => $project});
+    my $center = $schema->resultset('Center')->find_or_create({name => $line->center});
+    my $study  = $schema->resultset('Study')->find_or_create({name => $line->study});
+    my $host   = $schema->resultset('Host')->find_or_create({name => $hostname});
+    my $pi     = $schema->resultset('Pi')->find_or_create({name => $line->pi});
 
     $schema->resultset('Sample')->find_or_create(
       {
@@ -84,14 +88,12 @@ sub execute {
         study_id   => $study->id,
         pi_id      => $pi->id,
         host_id    => $host->id,
-        project_id => $project->id,
-        filename   => $bam->name,
-        run_dir    => $bam->rundir,
+        project_id => $proj->id,
+        filename   => $line->filename,
+        run_dir    => $line->run_dir,
         fullpath   => $line->fullpath,
       }
     );
-
-    # TODO - add logging
   }
 }
 

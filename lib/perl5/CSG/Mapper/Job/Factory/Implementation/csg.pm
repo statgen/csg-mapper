@@ -42,6 +42,7 @@ sub state {
 
 sub submit {
   my ($self, $file) = @_;
+  say $file;
   return 1;
 }
 

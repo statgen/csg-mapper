@@ -28,4 +28,4 @@ if [ -d $TMP_DIR ]; then
   done
 fi
 
-[% INCLUDE _job %]
+[% INCLUDE _job.tt2 %]
