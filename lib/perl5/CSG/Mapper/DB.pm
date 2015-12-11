@@ -11,4 +11,9 @@ sub new {
   return __PACKAGE__->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'));
 }
 
+sub now {
+  my $now = DateTime->now(time_zone => 'America/Detroit');
+  return DateTime::Format::MySQL->format_datetime($now),;
+}
+
 1;
