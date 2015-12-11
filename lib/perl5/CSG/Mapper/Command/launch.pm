@@ -134,7 +134,7 @@ sub execute {
           walltime => $walltime,
           build    => $build,
           email    => $config->get($project, 'email'),
-          job_name => $project . q{-} . $sample->sample_id,
+          job_name => $project . $DASH . $sample->sample_id,
           account  => $config->get($cluster, 'account'),
           workdir  => $log_dir,
         },
