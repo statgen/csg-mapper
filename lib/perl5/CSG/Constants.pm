@@ -26,6 +26,7 @@ our @EXPORT_OK = (
     $FALSE
     $PIPE
     $DASH
+    $MAX_DELAY
     $VALID_CLUSTER_REGEXPS
     @TIME_FORMAT_REGEXPS
     %SAMPLE_STATE
@@ -44,6 +45,7 @@ our %EXPORT_TAGS = (
       $PIPE
       $DASH
       $VALID_CLUSTER_REGEXPS
+      $MAX_DELAY
       @TIME_FORMAT_REGEXPS
       %SAMPLE_STATE
       )
@@ -63,6 +65,7 @@ our %EXPORT_TAGS = (
   mapping => [
     qw(
       $VALID_CLUSTER_REGEXPS
+      $MAX_DELAY
       @TIME_FORMAT_REGEXPS
       %SAMPLE_STATE
       )
@@ -78,6 +81,7 @@ Readonly::Scalar our $FALSE      => q{0};
 Readonly::Scalar our $PIPE       => q{|};
 Readonly::Scalar our $DASH       => q{-};
 
+Readonly::Scalar our $MAX_DELAY             => 120;
 Readonly::Scalar our $VALID_CLUSTER_REGEXPS => qr{csg|flux};
 
 Readonly::Array our @TIME_FORMAT_REGEXPS => (

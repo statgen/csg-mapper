@@ -1,3 +1,4 @@
+## no critic (NamingConventions::Capitalization, Subroutines::RequireFinalReturn)
 package CSG::Mapper::Command::launch;
 
 # TODO - need logging
@@ -62,7 +63,7 @@ sub execute {
   my ($self, $opts, $args) = @_;
 
   my $jobs   = 0;
-  my $delay  = int(rand(120));
+  my $delay  = int(rand($MAX_DELAY));
   my $schema = $self->{stash}->{schema};
   my $config = $self->{stash}->{config};
 
@@ -82,8 +83,7 @@ sub execute {
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
-    # XXX - this can't always be the project node
-    my $basedir = File::Spec->join($prefix, $project, $workdir);
+    my $basedir = File::Spec->join($prefix, $workdir);
     unless (-e $basedir) {
       make_path($basedir);
     }
@@ -100,17 +100,17 @@ sub execute {
 
     my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf'));
     unless (-e $gotcloud_conf) {
-      die qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};
+      croak qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};
     }
 
     my $gotcloud_root = File::Spec->join($basedir, $config->get($cluster, 'gotcloud_root'));
     unless (-e $gotcloud_root) {
-      die qq{GOTCLOUD_ROOT [$gotcloud_root] does not exist!};
+      croak qq{GOTCLOUD_ROOT [$gotcloud_root] does not exist!};
     }
 
     my $gotcloud_ref = File::Spec->join($prefix, $config->get('gotcloud', qq{build${build}_ref_dir}));
     unless (-e $gotcloud_ref) {
-      die qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
+      croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
 
     my $job_meta = $sample->add_to_jobs(
@@ -123,7 +123,7 @@ sub execute {
       }
     );
 
-    my $results_dir = File::Spec->join($basedir, $config->get($project, 'results_dir'), $sample->center->name, $sample->pi->name, $sample->sample_id);
+    my $results_dir = File::Spec->join($prefix, $sample->host->name, $config->get($project, 'results_dir'), $sample->center->name, $sample->pi->name, $sample->sample_id);
     my $job_file = File::Spec->join($run_dir, $sample->sample_id . qq{.$cluster.sh});
     my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
     $tt->process(
@@ -149,7 +149,7 @@ sub execute {
           delay           => $delay,
           threads         => $procs,
           meta_id         => $job_meta->id,
-          mapper_cmd      => $0,
+          mapper_cmd      => $PROGRAM_NAME,
         },
         gotcloud => {
           root    => $gotcloud_root,
@@ -161,7 +161,7 @@ sub execute {
       },
       $job_file
       )
-      or die $Template::ERROR;
+      or croak $Template::ERROR;
 
     my $job = CSG::Mapper::Job->new(cluster => $cluster);
     $job->submit($job_file);
