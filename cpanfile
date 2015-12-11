@@ -29,6 +29,9 @@ requires 'IO::Socket::SSL';
 
 requires 'File::Stat';
 
+requires 'Log::Dispatch';
+requires 'Log::Dispatch::DBI';
+
 on 'test' => sub {
   requires 'Test::Class';
   requires 'Test::Exception';

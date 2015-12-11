@@ -409,6 +409,19 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Pod::Text 2.08
       Pod::Usage 1.33
+  DBD-CSV-0.48
+    pathname: H/HM/HMBRAND/DBD-CSV-0.48.tgz
+    provides:
+      DBD::CSV 0.48
+    requirements:
+      DBD::File 0.42
+      DBI 1.628
+      Encode 0
+      ExtUtils::MakeMaker 0
+      SQL::Statement 1.405
+      Test::More 0.9
+      Text::CSV_XS 1.01
+      charnames 0
   DBD-SQLite-1.48
     pathname: I/IS/ISHIGAKI/DBD-SQLite-1.48.tar.gz
     provides:
@@ -1940,6 +1953,52 @@ DISTRIBUTIONS
       IPC::Cmd 0
       XSLoader 0
       base 0
+  Log-Dispatch-2.51
+    pathname: D/DR/DROLSKY/Log-Dispatch-2.51.tar.gz
+    provides:
+      Log::Dispatch 2.51
+      Log::Dispatch::ApacheLog 2.51
+      Log::Dispatch::Base 2.51
+      Log::Dispatch::Code 2.51
+      Log::Dispatch::Email 2.51
+      Log::Dispatch::Email::MIMELite 2.51
+      Log::Dispatch::Email::MailSend 2.51
+      Log::Dispatch::Email::MailSender 2.51
+      Log::Dispatch::Email::MailSendmail 2.51
+      Log::Dispatch::File 2.51
+      Log::Dispatch::File::Locked 2.51
+      Log::Dispatch::Handle 2.51
+      Log::Dispatch::Null 2.51
+      Log::Dispatch::Output 2.51
+      Log::Dispatch::Screen 2.51
+      Log::Dispatch::Syslog 2.51
+    requirements:
+      Carp 0
+      Devel::GlobalDestruction 0
+      Dist::CheckConflicts 0.02
+      Encode 0
+      ExtUtils::MakeMaker 0
+      Fcntl 0
+      IO::Handle 0
+      Module::Runtime 0
+      Params::Validate 1.03
+      Scalar::Util 0
+      Sys::Syslog 0.28
+      base 0
+      perl 5.006
+      strict 0
+      warnings 0
+  Log-Dispatch-DBI-0.02
+    pathname: M/MI/MIYAGAWA/Log-Dispatch-DBI-0.02.tar.gz
+    provides:
+      Log::Dispatch::DBI 0.02
+    requirements:
+      DBD::CSV 0
+      DBI 0
+      ExtUtils::MakeMaker 0
+      File::Temp 0.12
+      Log::Dispatch 2
+      Test::More 0.32
   MRO-Compat-0.12
     pathname: B/BO/BOBTFISH/MRO-Compat-0.12.tar.gz
     provides:
@@ -2846,6 +2905,71 @@ DISTRIBUTIONS
       Test::Warn 0
       Text::Balanced 2.00
       perl 5.006
+  SQL-Statement-1.407
+    pathname: R/RE/REHSACK/SQL-Statement-1.407.tar.gz
+    provides:
+      SQL::Dialects::ANSI 1.407
+      SQL::Dialects::AnyData 1.407
+      SQL::Dialects::CSV 1.407
+      SQL::Dialects::Role 1.407
+      SQL::Eval 1.407
+      SQL::Eval::Table 1.407
+      SQL::Parser 1.407
+      SQL::Statement 1.407
+      SQL::Statement::Aggregate 1.407
+      SQL::Statement::ColumnValue 1.407
+      SQL::Statement::ConstantTerm 1.407
+      SQL::Statement::Function 1.407
+      SQL::Statement::Function::NumericEval 1.407
+      SQL::Statement::Function::StrConcat 1.407
+      SQL::Statement::Function::SubString 1.407
+      SQL::Statement::Function::Trim 1.407
+      SQL::Statement::Function::UserFunc 1.407
+      SQL::Statement::Functions 1.407
+      SQL::Statement::GetInfo 1.407
+      SQL::Statement::Group 1.407
+      SQL::Statement::Limit 1.407
+      SQL::Statement::Operation 1.407
+      SQL::Statement::Operation::ANSI::Is 1.407
+      SQL::Statement::Operation::And 1.407
+      SQL::Statement::Operation::Between 1.407
+      SQL::Statement::Operation::Clike 1.407
+      SQL::Statement::Operation::Contains 1.407
+      SQL::Statement::Operation::Equal 1.407
+      SQL::Statement::Operation::Equality 1.407
+      SQL::Statement::Operation::Greater 1.407
+      SQL::Statement::Operation::GreaterEqual 1.407
+      SQL::Statement::Operation::Is 1.407
+      SQL::Statement::Operation::Like 1.407
+      SQL::Statement::Operation::Lower 1.407
+      SQL::Statement::Operation::LowerEqual 1.407
+      SQL::Statement::Operation::Neg 1.407
+      SQL::Statement::Operation::NotEqual 1.407
+      SQL::Statement::Operation::Or 1.407
+      SQL::Statement::Operation::Regexp 1.407
+      SQL::Statement::Operation::Rlike 1.407
+      SQL::Statement::Order 1.407
+      SQL::Statement::Param 1.407
+      SQL::Statement::Placeholder 1.407
+      SQL::Statement::RAM 1.407
+      SQL::Statement::RAM::Table 1.407
+      SQL::Statement::Table 1.407
+      SQL::Statement::TempTable 1.407
+      SQL::Statement::Term 1.407
+      SQL::Statement::TermFactory 1.407
+      SQL::Statement::Util 1.407
+      SQL::Statement::Util::Column 1.407
+      SQL::Statement::Util::Function 1.407
+    requirements:
+      Carp 0
+      Clone 0.30
+      Data::Dumper 0
+      ExtUtils::MakeMaker 0
+      Module::Runtime 0
+      Params::Util 1.00
+      Scalar::Util 1.0
+      Text::Balanced 0
+      perl 5.008
   Scalar-List-Utils-1.42
     pathname: P/PE/PEVANS/Scalar-List-Utils-1.42.tar.gz
     provides:
@@ -2992,6 +3116,21 @@ DISTRIBUTIONS
       Sub::Exporter::Progressive 0.001006
       parent 0
       syntax 0
+  Sys-Syslog-0.33
+    pathname: S/SA/SAPER/Sys-Syslog-0.33.tar.gz
+    provides:
+      Sys::Syslog 0.33
+      Sys::Syslog::Win32 undef
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      Fcntl 0
+      File::Basename 0
+      File::Spec 0
+      POSIX 0
+      Socket 0
+      Test::More 0
+      XSLoader 0
   System-Command-1.115
     pathname: B/BO/BOOK/System-Command-1.115.tar.gz
     provides:

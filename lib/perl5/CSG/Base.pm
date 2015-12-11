@@ -37,6 +37,12 @@ our %IMPORT_BUNDLES = (
     'File::Path'        => [qw(make_path)],
     'File::Slurp::Tiny' => [qw(read_file read_lines)],
   ],
+  logging => [
+    qw(
+      Log::Dispatch
+      Log::Dispatch::Screen
+    )
+  ],
   parsers => [
     qw(
       Class::CSV

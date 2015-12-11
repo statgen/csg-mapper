@@ -103,7 +103,7 @@ __PACKAGE__->table("jobs");
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 started_at
 
@@ -159,7 +159,7 @@ __PACKAGE__->add_columns(
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    is_nullable => 0,
+    is_nullable => 1,
   },
   "started_at",
   {
@@ -202,6 +202,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 logs
+
+Type: has_many
+
+Related object: L<CSG::Mapper::DB::Schema::Result::Log>
+
+=cut
+
+__PACKAGE__->has_many(
+  "logs",
+  "CSG::Mapper::DB::Schema::Result::Log",
+  { "foreign.job_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 sample
 
 Type: belongs_to
@@ -218,8 +233,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-10 08:51:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jPBw9M63WshJG9vq9b7ogg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-11 11:56:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9rv0NjdjeZu6ISRiIbJI6Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
