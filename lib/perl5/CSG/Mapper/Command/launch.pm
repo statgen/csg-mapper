@@ -7,6 +7,7 @@ package CSG::Mapper::Command::launch;
 #      - add logging
 #      - try/catch on job submission
 #      - handle memory format differences
+#      - cleanup job submission and record keeping at submission time
 
 use CSG::Mapper -command;
 
@@ -78,7 +79,7 @@ sub execute {
   my $memory   = $opts->{memory}   // $config->get($project, 'memory_per_core');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
-  my $tmp_dir = $opts->{'tmp-dir'} // q{/tmp};
+  my $tmp_dir = $opts->{tmp_dir} // q{/tmp};
 
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
@@ -166,18 +167,15 @@ sub execute {
     my $job = CSG::Mapper::Job->new(cluster => $cluster);
     $job->submit($job_file);
 
-    $sample->update(
-      {
-        state => $SAMPLE_STATE{submitted},
-      }
-    );
-
-    $job_meta->update(
-      {
-        job_id       => 42,
-        submitted_at => DateTime->now(),
-      }
-    );
+    unless ($self->app->global_options->{dry_run}) {
+      $sample->update({state => $SAMPLE_STATE{submitted}});
+      $job_meta->update(
+        {
+          job_id       => $job->job_id(),
+          submitted_at => $schema->now(),
+        }
+      );
+    }
   }
 }
 
