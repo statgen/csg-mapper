@@ -13,6 +13,7 @@ our @EXPORT = (
     $FALSE
     $PIPE
     $DASH
+    $TIMEZONE
     )
 );
 
@@ -27,6 +28,7 @@ our @EXPORT_OK = (
     $PIPE
     $DASH
     $MAX_DELAY
+    $TIMEZONE
     $VALID_CLUSTER_REGEXPS
     @TIME_FORMAT_REGEXPS
     %SAMPLE_STATE
@@ -44,6 +46,7 @@ our %EXPORT_TAGS = (
       $FALSE
       $PIPE
       $DASH
+      $TIMEZONE
       $VALID_CLUSTER_REGEXPS
       $MAX_DELAY
       @TIME_FORMAT_REGEXPS
@@ -80,6 +83,7 @@ Readonly::Scalar our $TRUE       => q{1};
 Readonly::Scalar our $FALSE      => q{0};
 Readonly::Scalar our $PIPE       => q{|};
 Readonly::Scalar our $DASH       => q{-};
+Readonly::Scalar our $TIMEZONE   => q{America/Detroit};
 
 Readonly::Scalar our $MAX_DELAY             => 120;
 Readonly::Scalar our $VALID_CLUSTER_REGEXPS => qr{csg|flux};
