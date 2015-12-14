@@ -9,10 +9,10 @@ JOB_LOG=[% settings.job_log %]
 ALIGN_THREADS=[% settings.threads %]
 
 SAMPLE_ID=[% sample.sample_id %]
-BAM_CENTER=[% sample.center.name %]
-BAM_FILE=[% sample.fullpath %]
-BAM_PI=[% sample.pi.name %]
-BAM_HOST=[% sample.host.name %]
+BAM_CENTER=[% sample.center %]
+BAM_FILE=[% sample.incoming_path %]
+BAM_PI=[% sample.pi %]
+BAM_HOST=[% sample.host %]
 BAM_PIPELINE=[% settings.pipeline %]
 
 GOTCLOUD_ROOT=[% gotcloud.root %]
@@ -58,7 +58,7 @@ if [ -e $OUT_DIR ]; then
 
   if [ $? -ne 0 ]; then
     echo "[$(date)] Failed to remove existing OUT_DIR"
-    $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to remove existing OUT_DIR' --critical
+    $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to remove existing OUT_DIR' --level critical
     $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
     exit 1
 fi
@@ -67,7 +67,7 @@ $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating OUT_DIR and
 mkdir -p $OUT_DIR $TMP_DIR
 
 if [ $? -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% setings.meta_id %] --message 'failed to create OUT_DIR and or TMP_DIR' --critical
+  $MAPPER_CMD log --meta-id [% setings.meta_id %] --message 'failed to create OUT_DIR and or TMP_DIR' --level critical
   $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
   exit 1
 fi
@@ -76,7 +76,7 @@ $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'setting permissions 
 chmod 750 $TMP_DIR
 
 if [ $? -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to set permissions on TMP_DIR' --critical
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to set permissions on TMP_DIR' --level critical
   $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
   exit 1
 fi
@@ -103,7 +103,7 @@ rc=$?
 $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "pipe_rc: $rc"
 
 if [ "$rc" -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "$BAM_PIPELINE failed with exit code $rc" --critical
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "$BAM_PIPELINE failed with exit code $rc" --level critical
   $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
 else
   $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'begining gotcloud alignment'
@@ -122,7 +122,7 @@ else
 
   if [ "$rc" -ne 0 ]; then
     $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
-    $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "alignment failed with exit code $rc" --critical
+    $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "alignment failed with exit code $rc" --level critical
   else
     $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
     $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'alignment completed'
@@ -130,7 +130,7 @@ else
 fi
 
 if [ "$rc" -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'alignment failed, moving TMP_DIR to RUN_DIR' --critical
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'alignment failed, moving TMP_DIR to RUN_DIR' --level critical
   mv $TMP_DIR $RUN_DIR
 
   max_runs=[% settings.max_failed_runs %]

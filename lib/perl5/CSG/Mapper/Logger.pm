@@ -1,3 +1,6 @@
+# TODO - subclass the Screen dispatcher to add a timestamp
+#        to the log message.
+#
 package CSG::Mapper::Logger::Dispatch::DBI {
   use base qw(Log::Dispatch::DBI);
 

@@ -16,6 +16,7 @@ use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 use CSG::Mapper::Job;
+use CSG::Mapper::Sample;
 
 sub opt_spec {
   return (
@@ -79,17 +80,19 @@ sub execute {
   my $memory   = $opts->{memory}   // $config->get($project, 'memory_per_core');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
-  my $tmp_dir = $opts->{tmp_dir} // q{/tmp};
+  my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
 
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
+
+    my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample);
 
     my $basedir = File::Spec->join($prefix, $workdir);
     unless (-e $basedir) {
       make_path($basedir);
     }
 
-    my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample->center->name, $sample->pi->name, $sample->sample_id);
+    my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
     unless (-e $log_dir) {
       make_path($log_dir);
     }
@@ -124,9 +127,9 @@ sub execute {
       }
     );
 
-    my $results_dir = File::Spec->join($prefix, $sample->host->name, $config->get($project, 'results_dir'), $sample->center->name, $sample->pi->name, $sample->sample_id);
-    my $job_file = File::Spec->join($run_dir, $sample->sample_id . qq{.$cluster.sh});
-    my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
+    my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$cluster.sh});
+    my $tt       = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
+
     $tt->process(
       qq{$cluster.sh.tt2}, {
         job => {
@@ -135,16 +138,16 @@ sub execute {
           walltime => $walltime,
           build    => $build,
           email    => $config->get($project, 'email'),
-          job_name => $project . $DASH . $sample->sample_id,
+          job_name => $project . $DASH . $sample_obj->sample_id,
           account  => $config->get($cluster, 'account'),
           workdir  => $log_dir,
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,     $project),
-          job_log         => File::Spec->join($results_dir, q{job.log}),
-          pipeline        => $config->get('pipelines',      $sample->center->name),
+          job_log         => File::Spec->join($sample_obj->result_path, q{job.log}),
+          pipeline        => $config->get('pipelines',      $sample_obj->center),
           max_failed_runs => $config->get($project,         'max_failed_runs'),
-          out_dir         => $results_dir,
+          out_dir         => $sample_obj->result_path,
           run_dir         => $run_dir,
           project_dir     => $project_dir,
           delay           => $delay,
@@ -158,7 +161,7 @@ sub execute {
           ref_dir => $gotcloud_ref,
           cmd     => File::Spec->join($gotcloud_root, 'bin', 'gotcloud'),
         },
-        sample => $sample,
+        sample => $sample_obj,
       },
       $job_file
       )

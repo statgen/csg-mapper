@@ -283,48 +283,4 @@ __PACKAGE__->belongs_to(
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-10 08:51:48
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:60BzBQPvA5c9XrkgHRGKMQ
-
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
-# TODO -
-#       results_dir
-#       cram
-#       crai
-#       is_complete
-=cut
-sub _build_results_dir {
-  my ($self) = @_;
-  return File::Spec->join($self->prefix, $self->host, 'working', 'mapping', 'results', $self->center, $self->pi, $self->sample_id);
-}
-
-sub _build_cram {
-  my ($self) = @_;
-  return File::Spec->join($self->results_path, 'bams', $self->sample_id . '.recal.cram');
-}
-
-sub _build_crai {
-  return shift->cram . '.crai';
-}
-
-sub _build_prefix {
-  my $conf = CSG::Mapper::Config->new();
-  return $conf->get(shift->cluster, 'prefix');
-}
-
-sub is_complete {
-  my ($self) = @_;
-
-  return unless -e $self->cram;
-  return if -z $self->cram;
-  return unless -e $self->crai;
-
-  my $cram_stat = File::Stat->new($self->cram);
-  my $crai_stat = File::Stat->new($self->crai);
-
-  return unless $crai_stat->mtime > $cram_stat->mtime;
-
-  return 1;
-}
-=cut
-
 1;
