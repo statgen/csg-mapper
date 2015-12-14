@@ -32,6 +32,8 @@ requires 'File::Stat';
 requires 'Log::Dispatch';
 requires 'Log::Dispatch::DBI';
 
+requires 'YAML';
+
 on 'test' => sub {
   requires 'Test::Class';
   requires 'Test::Exception';

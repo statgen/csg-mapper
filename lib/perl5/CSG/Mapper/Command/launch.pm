@@ -144,7 +144,7 @@ sub execute {
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,     $project),
-          job_log         => File::Spec->join($sample_obj->result_path, q{job.log}),
+          job_log         => File::Spec->join($sample_obj->result_path, q{job.yml}),
           pipeline        => $config->get('pipelines',      $sample_obj->center),
           max_failed_runs => $config->get($project,         'max_failed_runs'),
           out_dir         => $sample_obj->result_path,

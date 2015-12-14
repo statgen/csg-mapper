@@ -37,6 +37,11 @@ our %IMPORT_BUNDLES = (
     'File::Path'        => [qw(make_path)],
     'File::Slurp::Tiny' => [qw(read_file read_lines)],
   ],
+  formats => [
+    qw(
+      YAML
+    )
+  ],
   logging => [
     qw(
       Log::Dispatch

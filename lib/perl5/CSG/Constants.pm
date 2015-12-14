@@ -13,6 +13,7 @@ our @EXPORT = (
     $FALSE
     $PIPE
     $DASH
+    $SPACE
     $TIMEZONE
     )
 );
@@ -27,6 +28,7 @@ our @EXPORT_OK = (
     $FALSE
     $PIPE
     $DASH
+    $SPACE
     $MAX_DELAY
     $TIMEZONE
     $VALID_CLUSTER_REGEXPS
@@ -46,6 +48,7 @@ our %EXPORT_TAGS = (
       $FALSE
       $PIPE
       $DASH
+      $SPACE
       $TIMEZONE
       $VALID_CLUSTER_REGEXPS
       $MAX_DELAY
@@ -63,6 +66,7 @@ our %EXPORT_TAGS = (
       $FALSE
       $PIPE
       $DASH
+      $SPACE
       )
   ],
   mapping => [
@@ -83,6 +87,7 @@ Readonly::Scalar our $TRUE       => q{1};
 Readonly::Scalar our $FALSE      => q{0};
 Readonly::Scalar our $PIPE       => q{|};
 Readonly::Scalar our $DASH       => q{-};
+Readonly::Scalar our $SPACE      => q{ };
 Readonly::Scalar our $TIMEZONE   => q{America/Detroit};
 
 Readonly::Scalar our $MAX_DELAY             => 120;
