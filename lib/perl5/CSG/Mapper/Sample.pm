@@ -6,9 +6,11 @@ use CSG::Mapper::Config;
 
 use Moose;
 
+has '_conf' => (is => 'ro', isa => 'CSG::Mapper::Config', lazy => 1, builder => '_build_conf');
+
 has 'cluster' => (is => 'ro', isa => 'ValidCluster',                            required => 1);
+has 'build'   => (is => 'ro', isa => 'Int',                                     required => 1);
 has 'record'  => (is => 'ro', isa => 'CSG::Mapper::DB::Schema::Result::Sample', required => 1);
-has '_conf'   => (is => 'ro', isa => 'CSG::Mapper::Config',                     lazy     => 1, builder => '_build_conf');
 
 has 'prefix'        => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_prefix');
 has 'project'       => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_project');
@@ -72,9 +74,9 @@ sub _build_incoming_path {
 sub _build_result_path {
   my ($self) = @_;
 
-  # /<prefix>/<host>/<project_resutls_dir>/<center>/<pi>/<sample_id>
+  # /<prefix>/<host>/<project_resutls_dir>/<center>/<pi>/hg<build>/<sample_id>
   my $results_dir = $self->_conf->get($self->project, 'results_dir');
-  return File::Spec->join($self->prefix, $self->host, $results_dir, $self->center, $self->pi, $self->sample_id);
+  return File::Spec->join($self->prefix, $self->host, $results_dir, $self->center, $self->pi, 'hg' . $self->build, $self->sample_id);
 }
 
 sub _build_cram {

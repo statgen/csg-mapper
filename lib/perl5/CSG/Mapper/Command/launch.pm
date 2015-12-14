@@ -85,7 +85,7 @@ sub execute {
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
-    my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample);
+    my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample, build => $build);
 
     my $basedir = File::Spec->join($prefix, $workdir);
     unless (-e $basedir) {
