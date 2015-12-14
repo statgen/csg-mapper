@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS `csgmapper`.`jobs` (
   `elapsed` INT(11) NULL DEFAULT 0 COMMENT '',
   `node` VARCHAR(45) NULL COMMENT '',
   `delay` INT NULL DEFAULT 0 COMMENT '',
-  `submitted_at` DATETIME NOT NULL COMMENT '',
+  `submitted_at` DATETIME NULL COMMENT '',
   `started_at` DATETIME NULL COMMENT '',
   `ended_at` DATETIME NULL COMMENT '',
   `created_at` DATETIME NOT NULL COMMENT '',
@@ -168,6 +168,27 @@ CREATE TABLE IF NOT EXISTS `csgmapper`.`jobs` (
   CONSTRAINT `fk_jobs_1`
     FOREIGN KEY (`sample_id`)
     REFERENCES `csgmapper`.`samples` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `csgmapper`.`logs`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `csgmapper`.`logs` ;
+
+CREATE TABLE IF NOT EXISTS `csgmapper`.`logs` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
+  `job_id` INT(11) NOT NULL COMMENT '',
+  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
+  `level` VARCHAR(45) NOT NULL COMMENT '',
+  `message` TEXT NOT NULL COMMENT '',
+  PRIMARY KEY (`id`)  COMMENT '',
+  INDEX `fk_table1_1_idx` (`job_id` ASC)  COMMENT '',
+  CONSTRAINT `fk_table1_1`
+    FOREIGN KEY (`job_id`)
+    REFERENCES `csgmapper`.`jobs` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
