@@ -24,15 +24,15 @@ use CSG::Mapper::Config;
 
 use Moose;
 
-has 'job_id' => (is => 'ro', isa => 'Int', required => 1);
-has '_logger'    => (is => 'rw', isa => 'Log::Dispatch', lazy => 1, builder => '_build_logger');
+has 'job_id'  => (is => 'ro', isa => 'Int', required => 1);
+has '_logger' => (is => 'rw', isa => 'Log::Dispatch', lazy => 1, builder => '_build_logger');
 
 sub _build_logger {
   my ($self) = @_;
 
   sub _add_timestamp {
     my (%log) = @_;
-    return sprintf '%s [%s] %s', uc($log{level}), DateTime->now(time_zone => $TIMEZONE), $log{message};
+    return sprintf '%s [%s] %s', DateTime->now(time_zone => $TIMEZONE), uc($log{level}), $log{message};
   }
 
   my $conf = CSG::Mapper::Config->new();
@@ -62,11 +62,9 @@ sub _build_logger {
 
   $log->add(
     CSG::Mapper::Logger::Dispatch::DBI->new(
-      datasource => $conf->dsn,
-      username   => $conf->get('db', 'user'),
-      password   => $conf->get('db', 'pass'),
-      table      => 'logs',
-      min_level  => 'info',
+      dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
+      table     => 'logs',
+      min_level => 'info',
     )
   );
 
