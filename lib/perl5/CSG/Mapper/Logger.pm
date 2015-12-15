@@ -64,7 +64,7 @@ sub _build_logger {
     CSG::Mapper::Logger::Dispatch::DBI->new(
       dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
       table     => 'logs',
-      min_level => 'info',
+      min_level => 'warning',
     )
   );
 
