@@ -3,12 +3,15 @@ package CSG::Mapper::Job::Factory::Implementation::flux;
 use CSG::Base qw(cmd www);
 use CSG::Constants qw(:mapping);
 use CSG::Mapper::Config;
+use CSG::Mapper::Exceptions;
 use CSG::Mapper::Util qw(:parsers);
 
 use Moose;
 
-Readonly::Scalar my $JOB_STATE_CMD_FORMAT => q{qstat -f -e %d > /dev/null 2>&1 ; echo $?};
-Readonly::Scalar my $FLUX_KIBANA_URL_FMT  => q{https://kibana.arc-ts.umich.edu/logstash-joblogs-%d.*/pbsacctlog/_search};
+Readonly::Scalar my $FLUX_KIBANA_URL_FORMAT => q{https://kibana.arc-ts.umich.edu/logstash-joblogs-%d.*/pbsacctlog/_search};
+Readonly::Scalar my $JOB_STATE_CMD_FORMAT   => q{qstat -f -e %d > /dev/null 2>&1 ; echo $?};
+Readonly::Scalar my $JOB_OUTPUT_REGEXP   => qr/^(?<jobid>\d+)\.nyx\.arc\-ts\.umich\.edu$/i;
+Readonly::Scalar my $JOB_SUBMIT_CMD      => q{/usr/local/torque/bin/qsub};
 
 Readonly::Hash my %JOB_STATES => (
   0   => 'running',
@@ -28,7 +31,7 @@ sub _build__logstash_url {
   my ($self) = @_;
 
   my $now = DateTime->now();
-  my $uri = URI->new(sprintf $FLUX_KIBANA_URL_FMT, $now->year);
+  my $uri = URI->new(sprintf $FLUX_KIBANA_URL_FORMAT, $now->year);
   $uri->query_form(
     {
       q      => 'jobid:' . $self->job_id,
@@ -67,7 +70,24 @@ sub state {
 }
 
 sub submit {
-  # TODO - need to parse the output for the qsub command and set the job_id
+  my ($self, $file) = @_;
+
+  CSG::Mapper::Exception::Job::BatchFileNotFound->throw() unless -e $file;
+  CSG::Mapper::Exception::Job::BatchFileNotReadable->throw() unless -r $file;
+
+  try {
+    my $output = capture($JOB_SUBMIT_CMD, $file);
+
+    if ($output =~ /$JOB_OUTPUT_REGEXP/) {
+      $self->job_id($+{jobid});
+    } else {
+      CSG::Mapper::Exception::Job::ProcessOutput->throw(output => $output);
+    }
+  } catch {
+    CSG::Mapper::Exception::Job::SubmissionFailure->throw(error => $_);
+  };
+
+  return;
 }
 
 no Moose;

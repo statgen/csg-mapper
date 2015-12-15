@@ -2,12 +2,11 @@
 package CSG::Mapper::Command::launch;
 
 # TODO - need logging
-#      - add dry-run support
-#      - add support to output the batch script but not submit
-#      - add logging
-#      - try/catch on job submission
-#      - handle memory format differences
-#      - cleanup job submission and record keeping at submission time
+# TODO - add dry-run support
+# TODO - add support to output the batch script but not submit
+# TODO - try/catch on job submission
+# TODO - handle memory format differences
+# TODO - cleanup job submission and record keeping at submission time
 
 use CSG::Mapper -command;
 
@@ -16,6 +15,7 @@ use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 use CSG::Mapper::Job;
+use CSG::Mapper::Logger;
 use CSG::Mapper::Sample;
 
 sub opt_spec {
@@ -64,6 +64,9 @@ sub validate_args {
 sub execute {
   my ($self, $opts, $args) = @_;
 
+  my $debug   = $self->app->global_options->{debug};
+  my $verbose = $self->app->global_options->{verbose};
+
   my $jobs   = 0;
   my $delay  = int(rand($MAX_DELAY));
   my $schema = $self->{stash}->{schema};
@@ -92,7 +95,8 @@ sub execute {
       make_path($basedir);
     }
 
-    my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
+    my $log_dir =
+      File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
     unless (-e $log_dir) {
       make_path($log_dir);
     }
@@ -128,7 +132,7 @@ sub execute {
     );
 
     my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$cluster.sh});
-    my $tt       = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
+    my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
 
     $tt->process(
       qq{$cluster.sh.tt2}, {
@@ -143,10 +147,10 @@ sub execute {
           workdir  => $log_dir,
         },
         settings => {
-          tmp_dir         => File::Spec->join($tmp_dir,     $project),
+          tmp_dir         => File::Spec->join($tmp_dir,                 $project),
           job_log         => File::Spec->join($sample_obj->result_path, q{job.yml}),
-          pipeline        => $config->get('pipelines',      $sample_obj->center),
-          max_failed_runs => $config->get($project,         'max_failed_runs'),
+          pipeline        => $config->get('pipelines',                  $sample_obj->center),
+          max_failed_runs => $config->get($project,                     'max_failed_runs'),
           out_dir         => $sample_obj->result_path,
           run_dir         => $run_dir,
           project_dir     => $project_dir,
@@ -167,17 +171,46 @@ sub execute {
       )
       or croak $Template::ERROR;
 
-    my $job = CSG::Mapper::Job->new(cluster => $cluster);
-    $job->submit($job_file);
-
     unless ($self->app->global_options->{dry_run}) {
-      $sample->update({state => $SAMPLE_STATE{submitted}});
-      $job_meta->update(
-        {
-          job_id       => $job->job_id(),
-          submitted_at => $schema->now(),
+      my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
+      my $job = CSG::Mapper::Job->new(cluster => $cluster);
+
+      $logger->debug("Submitting batch file $job_file") if $debug;
+
+      try {
+        $job->submit($job_file);
+      }
+      catch {
+        if ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
+          $logger->error($_->description);
+
+        } elsif ($_->isa('CSG::Mapper::Exception::Job::BatchFileNotReadable')) {
+          $logger->error($_->description);
+
+        } elsif ($_->isa('CSG::Mapper::Execption::Job::SubmissionFailure')) {
+          $logger->error($_->description);
+
+        } elsif ($_->isa('CSG::Mapper::Execption::Job::ProcessOutput')) {
+          $logger->error($_->description);
+
+        } else {
+          chomp(my $error = $_->error);
+          $logger->critical($error);
+
         }
-      );
+      } finally {
+        unless (@_) {
+          $logger->info('Submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
+
+          $sample->update({state => $SAMPLE_STATE{submitted}});
+          $job_meta->update(
+            {
+              job_id       => $job->job_id(),
+              submitted_at => $schema->now(),
+            }
+          );
+        }
+      };
     }
   }
 }

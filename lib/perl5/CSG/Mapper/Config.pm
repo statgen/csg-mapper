@@ -1,5 +1,4 @@
 # TODO - make a singleton
-#
 package CSG::Mapper::Config;
 
 use Moose;

@@ -9,6 +9,8 @@ use Moose;
 
 Readonly::Scalar my $JOB_ELAPSED_TIME_FORMAT => q{sacct -j %d -X -n -o elapsed};
 Readonly::Scalar my $JOB_STATE_CMD_FORMAT    => q{sacct -j %d -X -n -o state%%20};
+Readonly::Scalar my $JOB_OUTPUT_REGEXP       => qr/^Submitted batch job (?<jobid>\d+)$/i;
+Readonly::Scalar my $JOB_SUBMIT_CMD          => q{/usr/cluster/bin/sbatch};
 
 Readonly::Hash my %JOB_STATES => (
   RUNNING   => 'running',
@@ -42,8 +44,24 @@ sub state {
 
 sub submit {
   my ($self, $file) = @_;
-  say $file;
-  return 1;
+
+  CSG::Mapper::Exception::Job::BatchFileNotFound->throw() unless -e $file;
+  CSG::Mapper::Exception::Job::BatchFileNotReadable->throw() unless -r $file;
+
+  try {
+    my $output = capture($JOB_SUBMIT_CMD, $file);
+
+    if ($output =~ /$JOB_OUTPUT_REGEXP/) {
+      $self->job_id($+{jobid});
+    } else {
+      CSG::Mapper::Exception::Job::ProcessOutput->throw(output => $output);
+    }
+  } catch {
+    CSG::Mapper::Exception::Job::SubmissionFailure->throw(error => $_);
+  };
+
+  return;
+
 }
 
 no Moose;
