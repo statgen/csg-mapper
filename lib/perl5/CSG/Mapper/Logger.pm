@@ -23,7 +23,7 @@ use CSG::Mapper::Config;
 
 use Moose;
 
-has 'job_id' => (is => 'ro', isa => 'Int', required => 1);
+has 'job_id' => (is => 'ro', isa => 'Int', predicate => 'has_job_id');
 has '_logger' => (is => 'rw', isa => 'Log::Dispatch', lazy => 1, builder => '_build_logger');
 
 sub _build_logger {
@@ -33,9 +33,10 @@ sub _build_logger {
     my (%log) = @_;
 
     my $timestamp = DateTime->now(time_zone => $TIMEZONE);
-    my $level = uc($log{level});
+    my $level     = uc($log{level});
+    my $job_id    = $log{job_id} // 42;
 
-    return qq($timestamp [$level] job[$log{job_id}] $log{message});
+    return qq($timestamp [$level] job[$job_id] $log{message});
   }
 
   my $conf = CSG::Mapper::Config->new();
@@ -63,13 +64,15 @@ sub _build_logger {
     )
   );
 
-  $log->add(
-    CSG::Mapper::Logger::Dispatch::DBI->new(
-      dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
-      table     => 'logs',
-      min_level => 'warning',
-    )
-  );
+  if ($self->has_job_id) {
+    $log->add(
+      CSG::Mapper::Logger::Dispatch::DBI->new(
+        dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
+        table     => 'logs',
+        min_level => 'warning',
+      )
+    );
+  }
 
   return $log;
 }
