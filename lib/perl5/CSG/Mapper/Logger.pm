@@ -1,5 +1,4 @@
 ## no critic (RequireArgUnpacking, ProhibitNestedSubs, RequireFilenameMatchesPackage, ProhibitMultiplePackages)
-#
 package CSG::Mapper::Logger::Dispatch::DBI {
   use base qw(Log::Dispatch::DBI);
 
@@ -24,7 +23,7 @@ use CSG::Mapper::Config;
 
 use Moose;
 
-has 'job_id'  => (is => 'ro', isa => 'Int', required => 1);
+has 'job_id' => (is => 'ro', isa => 'Int', required => 1);
 has '_logger' => (is => 'rw', isa => 'Log::Dispatch', lazy => 1, builder => '_build_logger');
 
 sub _build_logger {
@@ -32,7 +31,11 @@ sub _build_logger {
 
   sub _add_timestamp {
     my (%log) = @_;
-    return sprintf '%s [%s] %s', DateTime->now(time_zone => $TIMEZONE), uc($log{level}), $log{message};
+
+    my $timestamp = DateTime->now(time_zone => $TIMEZONE);
+    my $level = uc($log{level});
+
+    return qq($timestamp [$level] job[$log{job_id}] $log{message});
   }
 
   my $conf = CSG::Mapper::Config->new();
