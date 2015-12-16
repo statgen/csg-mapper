@@ -8,7 +8,7 @@ use Exception::Class (
     description => 'Unable to read batch file',
   },
   __PACKAGE__ . '::Job::SubmissionFailure' => {
-    description => 'Failed to submit job with qsub',
+    description => 'Failed to submit job',
   },
   __PACKAGE__ . '::Job::ProcessOutput' => {
     description => 'Failed to parse the job submission output',
