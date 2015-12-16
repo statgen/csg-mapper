@@ -182,22 +182,31 @@ sub execute {
         $job->submit($job_file);
       }
       catch {
-        if ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
+        if (not ref $_) {
+          $logger->critical('Uncaught exception');
+          $logger->debug($_) if $debug;
+
+        } elsif ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
           $logger->error($_->description);
 
         } elsif ($_->isa('CSG::Mapper::Exception::Job::BatchFileNotReadable')) {
           $logger->error($_->description);
 
-        } elsif ($_->isa('CSG::Mapper::Execption::Job::SubmissionFailure')) {
+        } elsif ($_->isa('CSG::Mapper::Exception::Job::SubmissionFailure')) {
           $logger->error($_->description);
 
-        } elsif ($_->isa('CSG::Mapper::Execption::Job::ProcessOutput')) {
+        } elsif ($_->isa('CSG::Mapper::Exception::Job::ProcessOutput')) {
           $logger->error($_->description);
+          $logger->debug($_->output) if $debug;
 
         } else {
-          chomp(my $error = $_->error);
-          $logger->critical($error);
-
+          if ($_->isa('Exception::Class')) {
+            chomp(my $error = $_->error);
+            $logger->critical($error);
+          } else {
+            $logger->critical('something went sideways');
+            print STDERR Dumper $_ if $debug;
+          }
         }
       }
       finally {

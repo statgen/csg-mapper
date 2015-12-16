@@ -3,12 +3,14 @@ package CSG::Mapper::Job;
 use Moose;
 
 use CSG::Base qw(cmd);
+use CSG::Constants;
 use CSG::Types;
 use CSG::Mapper::Exceptions;
 use CSG::Mapper::Job::Factory;
+use CSG::Mapper::Logger;
 
 has 'cluster' => (is => 'ro', isa => 'ValidCluster', required  => 1);
-has 'job_id'  => (is => 'ro', isa => 'Int',          predicate => 'has_job_id');
+has 'job_id'  => (is => 'rw', isa => 'Int',          predicate => 'has_job_id');
 has 'factory' => (
   is      => 'ro',
   isa     => 'ValidJobFactory',
@@ -47,15 +49,21 @@ sub submit {
   CSG::Mapper::Exception::Job::BatchFileNotFound->throw() unless -e $file;
   CSG::Mapper::Exception::Job::BatchFileNotReadable->throw() unless -r $file;
 
-  try {
-    my $output = capture($self->job_submit_cmd, $file);
+  my $logger = CSG::Mapper::Logger->new();
 
-    if ($output =~ /$self->job_output_regexp/) {
+  try {
+    chomp(my $output = capture($self->job_submit_cmd, $file));
+    my $regexp = $self->job_output_regexp;
+    if ($output =~ /$regexp/) {
       $self->job_id($+{jobid});
     } else {
       CSG::Mapper::Exception::Job::ProcessOutput->throw(output => $output);
     }
   } catch {
+    die $_ unless blessed $_ and $_->can('rethrow');
+
+    $_->rethrow if $_->can('rethrow');
+
     CSG::Mapper::Exception::Job::SubmissionFailure->throw(error => $_);
   };
 
