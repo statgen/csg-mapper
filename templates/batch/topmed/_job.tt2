@@ -19,7 +19,7 @@ GOTCLOUD_ROOT=[% gotcloud.root %]
 GOTCLOUD_CONF=[% gotcloud.conf %]
 GOTCLOUD_CMD=[% gotcloud.cmd %]
 
-MAPPER_CMD_CMD=[% settings.mapper_cmd %]
+MAPPER_CMD=[% settings.mapper_cmd %]
 
 TMP_DIR="${TMP_DIR}/${JOB_ID}"
 FASTQ_LIST="${TMP_DIR}/fastq.list"
