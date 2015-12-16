@@ -1,8 +1,7 @@
 package CSG::Mapper::Job::Factory::Implementation::csg;
 
 use CSG::Base qw(cmd);
-use CSG::Constants qw(:mapping);
-use CSG::Mapper::Config;
+use CSG::Constants;
 use CSG::Mapper::Util qw(parse_time);
 
 use Moose;
@@ -20,7 +19,9 @@ Readonly::Hash my %JOB_STATES => (
   CANCELLED => 'cancelled',
 );
 
-has 'job_id' => (is => 'rw', isa => 'Int', predicate => 'has_job_id');
+has 'job_id'            => (is => 'rw', isa => 'Int',       predicate => 'has_job_id');
+has 'job_output_regexp' => (is => 'ro', isa => 'RegexpRef', default   => sub {return $JOB_OUTPUT_REGEXP});
+has 'job_submit_cmd'    => (is => 'ro', isa => 'Str',       default   => sub {return $JOB_SUBMIT_CMD});
 
 sub elapsed {
   my ($self) = @_;
@@ -29,39 +30,12 @@ sub elapsed {
   return parse_time($time);
 }
 
-sub elapsed_seconds {
-  my $e = shift->elapsed;
-  return ($e->days * 24 * 3600) + ($e->hours * 3600) + ($e->minutes * 60) + $e->seconds;
-}
-
 sub state {
   my ($self) = @_;
   my $cmd = sprintf $JOB_STATE_CMD_FORMAT, $self->job_id;
   chomp(my $state = capture(EXIT_ANY, $cmd));
   $state =~ s/^\s+|\s+$//g;
   return $JOB_STATES{$state};
-}
-
-sub submit {
-  my ($self, $file) = @_;
-
-  CSG::Mapper::Exception::Job::BatchFileNotFound->throw() unless -e $file;
-  CSG::Mapper::Exception::Job::BatchFileNotReadable->throw() unless -r $file;
-
-  try {
-    my $output = capture($JOB_SUBMIT_CMD, $file);
-
-    if ($output =~ /$JOB_OUTPUT_REGEXP/) {
-      $self->job_id($+{jobid});
-    } else {
-      CSG::Mapper::Exception::Job::ProcessOutput->throw(output => $output);
-    }
-  } catch {
-    CSG::Mapper::Exception::Job::SubmissionFailure->throw(error => $_);
-  };
-
-  return;
-
 }
 
 no Moose;

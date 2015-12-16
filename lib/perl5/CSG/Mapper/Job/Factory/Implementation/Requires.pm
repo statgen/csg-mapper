@@ -7,9 +7,9 @@ requires(
     job_id
     has_job_id
     elapsed
-    elapsed_seconds
     state
-    submit
+    job_output_regexp
+    job_submit_cmd
     )
 );
 
