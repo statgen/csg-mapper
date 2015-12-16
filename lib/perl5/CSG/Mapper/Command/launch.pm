@@ -2,9 +2,6 @@
 package CSG::Mapper::Command::launch;
 
 # TODO - need logging
-# TODO - add dry-run support
-# TODO - add support to output the batch script but not submit
-# TODO - try/catch on job submission
 # TODO - handle memory format differences
 # TODO - cleanup job submission and record keeping at submission time
 
@@ -88,22 +85,35 @@ sub execute {
   for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
+    my $job_meta = $sample->add_to_jobs(
+      {
+        cluster  => $cluster,
+        procs    => $procs,
+        memory   => $memory,
+        walltime => $walltime,
+        delay    => $delay,
+      }
+    );
+
     my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample, build => $build);
+    my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
 
     my $basedir = File::Spec->join($prefix, $workdir);
     unless (-e $basedir) {
       make_path($basedir);
+      $logger->debug('created basedir') if $debug;
     }
 
-    my $log_dir =
-      File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
+    my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
     unless (-e $log_dir) {
       make_path($log_dir);
+      $logger->debug('created log_dir') if $debug;
     }
 
     my $run_dir = File::Spec->join($basedir, $config->get($project, 'run_dir'));
     unless (-e $run_dir) {
       make_path($run_dir);
+      $logger->debug('created run_dir') if $debug;
     }
 
     my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf'));
@@ -120,16 +130,6 @@ sub execute {
     unless (-e $gotcloud_ref) {
       croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
-
-    my $job_meta = $sample->add_to_jobs(
-      {
-        cluster  => $cluster,
-        procs    => $procs,
-        memory   => $memory,
-        walltime => $walltime,
-        delay    => $delay,
-      }
-    );
 
     my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$cluster.sh});
     my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
@@ -171,11 +171,12 @@ sub execute {
       )
       or croak $Template::ERROR;
 
+    $logger->info("wrote batch file to $job_file") if $verbose or $debug;
+
     unless ($self->app->global_options->{dry_run}) {
-      my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
       my $job = CSG::Mapper::Job->new(cluster => $cluster);
 
-      $logger->debug("Submitting batch file $job_file") if $debug;
+      $logger->debug("submitting batch file $job_file") if $debug;
 
       try {
         $job->submit($job_file);
@@ -198,9 +199,10 @@ sub execute {
           $logger->critical($error);
 
         }
-      } finally {
+      }
+      finally {
         unless (@_) {
-          $logger->info('Submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
+          $logger->info('submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
 
           $sample->update({state => $SAMPLE_STATE{submitted}});
           $job_meta->update(
