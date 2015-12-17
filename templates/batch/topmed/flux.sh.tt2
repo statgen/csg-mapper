@@ -2,7 +2,7 @@
 
 #PBS -l nodes=1:ppn=[% job.procs %]
 #BPS -l walltime=[% job.walltime %]
-#PBS -l pmem=[% jobs.memory %]
+#PBS -l pmem=4gb
 #PBS -l ddisk=50gb
 #PBS -m a
 #PBS -d [% job.workdir %]

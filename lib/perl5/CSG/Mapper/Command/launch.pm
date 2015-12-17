@@ -1,12 +1,7 @@
 ## no critic (NamingConventions::Capitalization, Subroutines::RequireFinalReturn)
 package CSG::Mapper::Command::launch;
 
-# TODO - need logging
-# TODO - handle memory format differences
-# TODO - cleanup job submission and record keeping at submission time
-
 use CSG::Mapper -command;
-
 use CSG::Base qw(file templates);
 use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
@@ -63,21 +58,20 @@ sub execute {
 
   my $debug   = $self->app->global_options->{debug};
   my $verbose = $self->app->global_options->{verbose};
+  my $cluster = $self->app->global_options->{cluster};
+  my $project = $self->app->global_options->{project};
 
   my $jobs   = 0;
   my $delay  = int(rand($MAX_DELAY));
   my $schema = $self->{stash}->{schema};
   my $config = $self->{stash}->{config};
 
-  my $cluster = $self->app->global_options->{cluster};
-  my $project = $self->app->global_options->{project};
-
   my $project_dir = qq{$FindBin::Bin/../};
   my $prefix      = $config->get($cluster, 'prefix');
   my $workdir     = $config->get($project, 'workdir');
 
   my $procs    = $opts->{procs}    // $config->get($project, 'procs');
-  my $memory   = $opts->{memory}   // $config->get($project, 'memory_per_core');
+  my $memory   = $opts->{memory}   // $config->get($project, 'memory');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
