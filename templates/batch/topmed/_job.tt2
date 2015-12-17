@@ -39,10 +39,10 @@ if [ -e $OUT_DIR ]; then
   rm -rfv $OUT_DIR
 
   if [ $? -ne 0 ]; then
-    echo "[$(date)] Failed to remove existing OUT_DIR"
     $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to remove existing OUT_DIR' --level critical
     $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
     exit 1
+  fi
 fi
 
 $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating OUT_DIR and TMP_DIR'
