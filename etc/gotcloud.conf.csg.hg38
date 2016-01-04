@@ -1,5 +1,6 @@
 # FASTQ_LIST = /net/1000g/mktrost/testNewRef/NA12878_30x/fastq.list
 # OUT_DIR = /net/1000g/mktrost/testNewRef/NA12878_30x/output_new_dbsnp142_SS
+AS = NCBI38
 
 # REF_DIR = /data/local/ref/gotcloud.ref/hg38/
 REF = $(REF_DIR)/hs38DH.fa
