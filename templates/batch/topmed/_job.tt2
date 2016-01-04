@@ -64,7 +64,7 @@ if [ $? -ne 0 ]; then
 fi
 
 $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating BAM_LIST'
-echo "$BAM_ID $BAM_FILE" > $BAM_LIST
+echo "$SAMPLE_ID $BAM_FILE" > $BAM_LIST
 
 if [ ! -z $DELAY ]; then
   $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "delaying execution for $DELAY minutes"
