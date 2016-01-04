@@ -16,6 +16,7 @@ sub opt_spec {
     ['procs|p=i',    'Number of cores to request'],
     ['memory|m=i',   'Amount of memory to request, in MB'],
     ['walltime|w=i', 'Amount of wallclock time for this job'],
+    ['delay=i',      'Amount of time to delay exection in seconds'],
     ['build|b=i',    'Reference build to use (ie; 37 or 38)'],
     ['tmp-dir|t=s',  'Local temporary disk locaiton (defaults to /tmp)'],
   );
@@ -62,7 +63,6 @@ sub execute {
   my $project = $self->app->global_options->{project};
 
   my $jobs   = 0;
-  my $delay  = int(rand($MAX_DELAY));
   my $schema = $self->{stash}->{schema};
   my $config = $self->{stash}->{config};
 
@@ -73,6 +73,7 @@ sub execute {
   my $procs    = $opts->{procs}    // $config->get($project, 'procs');
   my $memory   = $opts->{memory}   // $config->get($project, 'memory');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
+  my $delay    = $opts->{delay}    // int(rand($MAX_DELAY));
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
 
@@ -92,6 +93,17 @@ sub execute {
     my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample, build => $build);
     my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
 
+    if ($debug) {
+      $logger->debug("cluster: $cluster");
+      $logger->debug("procs: $procs");
+      $logger->debug("memory: $memory");
+      $logger->debug("walltime: $walltime");
+      $logger->debug("delay: $delay");
+      $logger->debug("build: $build");
+      $logger->debug("tmp_dir: $tmp_dir");
+      $logger->debug('out_dir: ' . $sample_obj->result_path);
+    }
+
     my $basedir = File::Spec->join($prefix, $workdir);
     $logger->debug("basedir: $basedir") if $debug;
     unless (-e $basedir) {
@@ -100,12 +112,14 @@ sub execute {
     }
 
     my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
+    $logger->debug("log_dir: $log_dir") if $debug;
     unless (-e $log_dir) {
       make_path($log_dir);
       $logger->debug('created log_dir') if $debug;
     }
 
     my $run_dir = File::Spec->join($basedir, $config->get($project, 'run_dir'));
+    $logger->debug("run_dir: $run_dir") if $debug;
     unless (-e $run_dir) {
       make_path($run_dir);
       $logger->debug('created run_dir') if $debug;
