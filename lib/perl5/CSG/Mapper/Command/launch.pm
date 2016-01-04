@@ -93,6 +93,7 @@ sub execute {
     my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
 
     my $basedir = File::Spec->join($prefix, $workdir);
+    $logger->debug("basedir: $basedir") if $debug;
     unless (-e $basedir) {
       make_path($basedir);
       $logger->debug('created basedir') if $debug;
@@ -110,17 +111,20 @@ sub execute {
       $logger->debug('created run_dir') if $debug;
     }
 
-    my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf'));
+    my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf') . qq{.hg$build});
+    $logger->debug("gotcloud conf: $gotcloud_conf") if $debug;
     unless (-e $gotcloud_conf) {
       croak qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};
     }
 
     my $gotcloud_root = File::Spec->join($basedir, $config->get($cluster, 'gotcloud_root'));
+    $logger->debug("gotcloud root: $gotcloud_root") if $debug;
     unless (-e $gotcloud_root) {
       croak qq{GOTCLOUD_ROOT [$gotcloud_root] does not exist!};
     }
 
     my $gotcloud_ref = File::Spec->join($prefix, $config->get('gotcloud', qq{build${build}_ref_dir}));
+    $logger->debug("gotcloud ref_dir: $gotcloud_ref") if $debug;
     unless (-e $gotcloud_ref) {
       croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
@@ -157,7 +161,7 @@ sub execute {
           root    => $gotcloud_root,
           conf    => $gotcloud_conf,
           ref_dir => $gotcloud_ref,
-          cmd     => File::Spec->join($gotcloud_root, 'bin', 'gotcloud'),
+          cmd     => File::Spec->join($gotcloud_root, 'gotcloud'),
         },
         sample => $sample_obj,
       },
