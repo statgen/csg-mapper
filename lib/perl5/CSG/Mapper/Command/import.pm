@@ -65,7 +65,6 @@ sub execute {
 
   for my $line (@lines) {
     my $hostname    = $project;
-    # /net/topmed/incoming/topmed/center
     my $incoming    = File::Spec->join($config->get($cluster, 'prefix'), $project, $config->get($project, 'incoming_dir'));
     my $center_path = File::Spec->join($incoming, $line->center);
 
