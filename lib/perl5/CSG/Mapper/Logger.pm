@@ -23,8 +23,39 @@ use CSG::Mapper::Config;
 
 use Moose;
 
-has 'job_id' => (is => 'ro', isa => 'Int', predicate => 'has_job_id');
-has '_logger' => (is => 'rw', isa => 'Log::Dispatch', lazy => 1, builder => '_build_logger');
+has 'job_id' => (
+  is        => 'ro',
+  isa       => 'Int',
+  predicate => 'has_job_id',
+  trigger   => \&_set_job_id,
+);
+
+has '_logger' => (
+  is      => 'rw',
+  isa     => 'Log::Dispatch',
+  lazy    => 1,
+  builder => '_build_logger',
+);
+
+sub _set_job_id {
+  my ($self, $new, $prev) = @_;
+
+  unless ($self->has_job_id) {
+    my $conf = CSG::Mapper::Config->new();
+
+    $self->logger->add(
+      CSG::Mapper::Logger::Dispatch::DBI->new(
+        dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
+        table     => 'logs',
+        min_level => 'notice',
+      )
+    );
+  }
+
+  $self->{job_id} = $new;
+
+  return;
+}
 
 sub _build_logger {
   my ($self) = @_;
@@ -33,14 +64,14 @@ sub _build_logger {
     my (%log) = @_;
 
     my $timestamp = DateTime->now(time_zone => $TIMEZONE);
-    my $level     = uc($log{level});
-    my $job_id    = $log{job_id} // 42;
+    my $level = uc($log{level});
 
-    return qq($timestamp [$level] job[$job_id] $log{message});
+    return ($log{job_id})
+      ? qq($timestamp [$level] job[$log{job_id}] $log{message})
+      : qq($timestamp [$level] $log{message});
   }
 
-  my $conf = CSG::Mapper::Config->new();
-  my $log  = Log::Dispatch->new();
+  my $log = Log::Dispatch->new();
 
   $log->add(
     Log::Dispatch::Screen->new(
@@ -64,16 +95,6 @@ sub _build_logger {
     )
   );
 
-  if ($self->has_job_id) {
-    $log->add(
-      CSG::Mapper::Logger::Dispatch::DBI->new(
-        dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
-        table     => 'logs',
-        min_level => 'notice',
-      )
-    );
-  }
-
   return $log;
 }
 
@@ -86,7 +107,7 @@ sub debug     {return shift->_log('debug',     @_);}
 sub info      {return shift->_log('info',      @_);}
 sub notice    {return shift->_log('notice',    @_);}
 sub warning   {return shift->_log('warning',   @_);}
-sub error     {return shift->_log('info',      @_);}
+sub error     {return shift->_log('error',     @_);}
 sub critical  {return shift->_log('critical',  @_);}
 sub alert     {return shift->_log('alert',     @_);}
 sub emergency {return shift->_log('emergency', @_);}
