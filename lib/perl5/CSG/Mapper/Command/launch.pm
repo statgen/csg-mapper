@@ -183,7 +183,7 @@ sub execute {
       )
       or croak $Template::ERROR;
 
-    $logger->info("wrote batch file to $job_file") if $verbose or $debug;
+    $logger->debug("wrote batch file to $job_file") if $debug;
 
     unless ($self->app->global_options->{dry_run}) {
       my $job = CSG::Mapper::Job->new(cluster => $cluster);
