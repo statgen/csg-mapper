@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#SBATCH --time=28-0
+#SBATCH --partition=[% settings.project %]
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=[% job.email %]
+#SBATCH --workdir=[% job.workdir %]
+#SBATCH --job-name=monitor-[% settings.project %]
+
+JOB_ID=$SLURM_JOB_ID
+
+[% INCLUDE _job.tt2 %]

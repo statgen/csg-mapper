@@ -1,0 +1,15 @@
+#!/bin/sh
+
+#PBS -l qos=flux,procs=1,walltime=672:00:00,mem=1gb
+#PBS -m abe
+#PBS -M [% job.email %]
+#PBS -A [% job.account %]
+#PBS -q flux
+#PBS -V
+#PBS -j oe
+#PBS -d [% job.workdir %]
+#PBS -N monitor-[% settings.project %]
+
+JOB_ID=$PBS_JOBID
+
+[% INCLUDE _job.tt2 %]
