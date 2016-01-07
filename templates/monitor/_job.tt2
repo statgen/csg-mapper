@@ -11,7 +11,7 @@ export PATH=${PROJECT_DIR}/bin:${PERL_CARTON_PATH}/bin:${PATH}
 $MAPPER_CMD log --message "starting monitor process for $PROJECT"
 
 while true; do
-  remaining=$($MAPPER_CMD stat --cluster $CLUSTER --time-left $JOB_ID)
+  remaining=$($MAPPER_CMD stat --cluster $CLUSTER --time-left --job-id $JOB_ID)
   job_limit=$(cat ${CONTROL_DIR}/monitor_max_jobs_launch)
   min_time_left=$(cat ${CONTROL_DIR}/monitor_min_time_left)
   sleep_delay=$(cat ${CONTROL_DIR}/monitor_sleep)
