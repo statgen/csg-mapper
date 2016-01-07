@@ -3,7 +3,7 @@ package CSG::Mapper::Job;
 use Moose;
 
 use CSG::Base qw(cmd);
-use CSG::Constants;
+use CSG::Constants qw(:mapping);
 use CSG::Types;
 use CSG::Mapper::Exceptions;
 use CSG::Mapper::Job::Factory;
@@ -22,6 +22,7 @@ has 'factory' => (
       state
       job_output_regexp
       job_submit_cmd
+      _time_remaining
       )
   ],
 );
@@ -70,4 +71,17 @@ sub submit {
   return;
 }
 
+sub time_remaining {
+  my ($self) = @_;
+
+  for my $regexp (@TIME_FORMAT_REGEXPS) {
+    if ($self->_time_remaining() =~ $regexp) {
+      return (($+{days} * 24) + $+{hours}) if $+{days} and $+{hours};
+      return $+{hours} if $+{hours};
+      return int($+{seconds} / 60 / 60) if $+{seconds};
+    }
+  }
+
+  return 0;
+}
 1;
