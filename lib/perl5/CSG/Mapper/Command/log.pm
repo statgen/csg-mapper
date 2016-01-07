@@ -17,15 +17,15 @@ sub opt_spec {
 sub validate_args {
   my ($self, $opts, $args) = @_;
 
-  unless ($opts->{meta_id}) {
-    $self->usage_error('Job meta id is required');
-  }
-
-  my $logger = CSG::Mapper::Logger->new(job_id => $opts->{meta_id});
+  my $logger = CSG::Mapper::Logger->new();
   my $level = $opts->{level} // q{info};
 
   unless ($logger->can($level)) {
     $self->usage_error('Invalid loglevel');
+  }
+
+  if ($opts->{meta_id}) {
+    $logger->job_id($opts->{meta_id});
   }
 
   $self->{stash}->{logger} = $logger;
