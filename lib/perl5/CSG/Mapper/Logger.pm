@@ -1,30 +1,15 @@
 ## no critic (RequireArgUnpacking, ProhibitNestedSubs, RequireFilenameMatchesPackage, ProhibitMultiplePackages)
-package CSG::Mapper::Logger::Dispatch::DBI {
-  use base qw(Log::Dispatch::DBI);
-
-  sub create_statement {
-    my $self = shift;
-    my $sql  = qq{insert into $self->{table} (job_id, level, message) values (?, ?, ?)};
-    return $self->{dbh}->prepare($sql);
-  }
-
-  sub log_message {
-    my $self   = shift;
-    my %params = @_;
-    return $self->{sth}->execute(@params{qw(job_id level message)});
-  }
-};
-
 package CSG::Mapper::Logger;
 
 use CSG::Base qw(logging);
 use CSG::Constants;
 use CSG::Mapper::Config;
+use CSG::Mapper::Logger::Dispatch::DBI;
 
 use Moose;
 
 has 'job_id' => (
-  is        => 'ro',
+  is        => 'rw',
   isa       => 'Int',
   predicate => 'has_job_id',
   trigger   => \&_set_job_id,
