@@ -1,0 +1,99 @@
+#!/bin/sh
+
+[% IF settings.cluster == 'csg' %]
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=[% job.procs %]
+#SBATCH --mem=[% job.memory %]
+#SBATCH --gres=tmp:sata:200
+#SBATCH --time=10-02:00:00
+#SBATCH --workdir=[% job.workdir %]
+#SBATCH --partition=nomosix
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=[% job.email %]
+#SBATCH --job-name=[% job.job_name %]
+#SBATCH --dependency=afterok:[% job.job_dep_id %]
+#SBATCH --nodelist=[% job.nodelist %]
+
+JOB_ID=$SLURM_JOB_ID
+NODELIST=$SLURM_JOB_NODELIST
+[% ELSIF settings.cluster == 'flux' %]
+#PBS -l nodes=1:ppn=[% job.procs %]:[% job.nodelist %]
+#BPS -l walltime=[% job.walltime %]
+#PBS -l pmem=4gb
+#PBS -l ddisk=50gb
+#PBS -m a
+#PBS -d [% job.workdir %]
+#PBS -M [% job.email %]
+#PBS -q flux
+#PBS -l qos=flux
+#PBS -A [% job.account %]
+#PBS -V
+#PBS -j oe
+#PBS -N [% job.job_name %]
+#PBS -W depend=afterok:[% job.job_dep_id %]
+
+JOB_ID=$PBS_JOBID
+NODELIST=$(cat $PBS_NODEFILE)
+[% END %]
+
+OUT_DIR=[% settings.out_dir %]
+MAPPER_CMD=[% settings.mapper_cmd %]
+TMP_DIR="[% settings.tmp_dir %]/[% sample.sample_id %]"
+
+export PERL_CARTON_PATH=[% settings.project_dir %]/local
+export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}
+export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
+
+$MAPPER_CMD update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST --state align
+
+$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "job env: $(env|tr '\n', ' ')"
+
+if [ -e $OUT_DIR ]; then
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'found existing OUT_DIR deleting'
+  rm -rfv $OUT_DIR
+
+  if [ $? -ne 0 ]; then
+    $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to remove existing OUT_DIR' --level critical
+    $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
+    exit 1
+  fi
+fi
+
+$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating OUT_DIR'
+mkdir -p $OUT_DIR
+
+if [ $? -ne 0 ]; then
+  $MAPPER_CMD log --meta-id [% setings.meta_id %] --message 'failed to create OUT_DIR and' --level critical
+  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
+  exit 1
+fi
+
+$MAPPER_CMD show --meta-id [% settings.meta_id %] --info > [% settings.job_log %]
+$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'begining gotcloud alignment'
+
+[% gotcloud.cmd %] align \
+  --gcroot       [% gotcloud.root %] \
+  --conf         [% gotcloud.conf %] \
+  --threads      [% settings.threads %] \
+  --outdir       $OUT_DIR \
+  --fastqlist    ${TMP_DIR}/fastq.list \
+  --override     "TMP_DIR=$TMP_DIR" \
+  --ref_dir      [% gotcloud.ref_dir %] \
+  --maxlocaljobs [% settings.threads %]
+
+rc=$?
+$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "align_rc: $rc"
+
+if [ "$rc" -eq 0 ]; then
+  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state completed --exit-code $rc
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'alignment completed'
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "purging $TMP_DIR on $NODELIST"
+  rm -rf $TMP_DIR
+else
+  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
+  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "alignment failed with exit code $rc" --level critical
+fi
+
+exit $rc
+
+# vi: ft=sh

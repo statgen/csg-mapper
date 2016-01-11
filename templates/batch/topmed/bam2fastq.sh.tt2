@@ -77,11 +77,11 @@ sleep "[% settings.delay %]m"
 $MAPPER_CMD show --meta-id [% settings.meta_id %] --info > [% settings.job_log %]
 $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'beginning bam2fastq pipeline'
 
-[% gotcloud.cmd %] pipe            \
-  --gcroot  [% gotcloud.root %]    \
-  --name    [% settings.pipeline %]          \
-  --conf    [% gotcloud.conf %]    \
-  --numjobs 1                      \
+[% gotcloud.cmd %] pipe \
+  --gcroot  [% gotcloud.root %] \
+  --name    [% settings.pipeline %] \
+  --conf    [% gotcloud.conf %] \
+  --numjobs 1 \
   --ref_dir [% gotcloud.ref_dir %] \
   --outdir  $TMP_DIR
 
