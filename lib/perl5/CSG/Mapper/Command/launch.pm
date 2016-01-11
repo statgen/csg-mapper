@@ -157,6 +157,7 @@ sub execute {
           job_name => $project . $DASH . $sample_obj->sample_id,
           account  => $config->get($cluster, 'account'),
           workdir  => $log_dir,
+          cluster  => $cluster,
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,                 $project),
