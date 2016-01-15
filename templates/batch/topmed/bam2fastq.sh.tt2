@@ -7,7 +7,7 @@
 #SBATCH --gres=tmp:sata:200
 #SBATCH --time=10-02:00:00
 #SBATCH --workdir=[% job.workdir %]
-#SBATCH --partition=nomosix
+#SBATCH --partition=topmed
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=[% job.email %]
 #SBATCH --job-name=[% job.job_name %]
@@ -40,7 +40,7 @@ export PERL_CARTON_PATH=[% settings.project_dir %]/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}
 export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
-$MAPPER_CMD update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST --state bam2fastq
+$MAPPER_CMD update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST --type bam2fastq
 
 $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'starting remapping pipeline'
 $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "job env: $(env|tr '\n', ' ')"
@@ -91,16 +91,7 @@ $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "pipe_rc: $rc"
 if [ "$rc" -eq 0 ]; then
   $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "[% settings.pipeline %] completed with exit code $rc"
   $MAPPER_CMD update --meta-id [% settings.meta_id %] --state completed --exit-code $rc
-
-  # TODO - submit alignment job...somehow
-  #
-  # $MAPPER_CMD launch \
-  #   --project [% settings.project %] \
-  #   --cluster [% settings.cluster %] \
-  #   --meta-id [% settings.meta_id %] \
-  #   --job-dep-id $JOB_ID \
-  #   --type alignment
-  #
+  $MAPPER_CMD launch --project [% settings.project %] --cluster [% settings.cluster %] --meta-id [% settings.meta_id %] --type alignment
 else
   $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "[% settings.pipeline %] failed with exit code $rc" --level critical
   $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc

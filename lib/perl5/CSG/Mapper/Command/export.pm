@@ -53,17 +53,17 @@ sub execute {
 
   while (my $result = $results->next) {
     my $export_meth = '_export_' . $result->name;
-    $self->$export_meth($result->get_column('sample_id'));
+    $self->$export_meth($result->get_column('sample_id'), $opts->{build});
   }
 }
 
 sub _export_topmed {
-  my ($self, $sample_id) = @_;
+  my ($self, $sample_id, $build) = @_;
 
   my $logger = $self->{stash}->{logger};
   my $schema = $self->{stash}->{schema};
   my $sample = $schema->resultset('Sample')->find($sample_id);
-  my $cmd    = sprintf '/usr/cluster/monitor/bin/topmedcmd.pl %s mapped%d completed', $sample->sample_id, $opts->{build};
+  my $cmd    = sprintf '/usr/cluster/monitor/bin/topmedcmd.pl %s mapped%d completed', $sample->sample_id, $build;
 
   $logger->debug("EXPORT CMD: '$cmd'") if $self->app->global_options->{debug};
 
