@@ -92,7 +92,7 @@ sub execute {
   my $memory   = $opts->{memory}   // $config->get($project, 'memory');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $delay    = $opts->{delay}    // int(rand($MAX_DELAY));
-  my $build    = $opts->{build}    // $config->get($project, 'ref_build');
+  my $build    = $opts->{build}    // $config->get($project, 'build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
 
   my $attrs  = {};

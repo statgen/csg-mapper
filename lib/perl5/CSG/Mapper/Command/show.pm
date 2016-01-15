@@ -46,7 +46,7 @@ sub execute {
         filename  => $meta->sample->filename,
         run_dir   => $meta->sample->run_dir,
         state     => $meta->sample->state,
-        build     => $meta->sample->ref_build,
+        build     => $meta->build,
         fullpath  => $meta->sample->fullpath,
       },
       job => {

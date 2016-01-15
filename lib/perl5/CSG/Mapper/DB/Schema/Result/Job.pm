@@ -99,6 +99,20 @@ __PACKAGE__->table("jobs");
   default_value: 0
   is_nullable: 1
 
+=head2 build
+
+  data_type: 'varchar'
+  default_value: 38
+  is_nullable: 0
+  size: 45
+
+=head2 type
+
+  data_type: 'varchar'
+  default_value: 'all'
+  is_nullable: 0
+  size: 45
+
 =head2 submitted_at
 
   data_type: 'datetime'
@@ -155,6 +169,15 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "delay",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
+  "build",
+  { data_type => "varchar", default_value => 38, is_nullable => 0, size => 45 },
+  "type",
+  {
+    data_type => "varchar",
+    default_value => "all",
+    is_nullable => 0,
+    size => 45,
+  },
   "submitted_at",
   {
     data_type => "datetime",
@@ -233,8 +256,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-11 11:56:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9rv0NjdjeZu6ISRiIbJI6Q
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-15 10:13:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YeREbGI8SAInfBk0Xt610g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

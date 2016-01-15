@@ -97,13 +97,6 @@ __PACKAGE__->table("samples");
   default_value: 0
   is_nullable: 0
 
-=head2 ref_build
-
-  data_type: 'varchar'
-  default_value: 38
-  is_nullable: 0
-  size: 45
-
 =head2 fullpath
 
   data_type: 'text'
@@ -151,8 +144,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "state",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
-  "ref_build",
-  { data_type => "varchar", default_value => 38, is_nullable => 0, size => 45 },
   "fullpath",
   { data_type => "text", is_nullable => 0 },
   "exported_at",
@@ -281,6 +272,6 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-12-10 08:51:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:60BzBQPvA5c9XrkgHRGKMQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-15 10:13:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GM4coTt361JuVZUZHNIVcQ
 1;

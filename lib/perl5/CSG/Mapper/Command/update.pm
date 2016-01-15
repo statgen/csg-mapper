@@ -86,6 +86,10 @@ sub execute {
       }
     );
   }
+
+  if ($opts->{type}) {
+    $meta->update({type => $opts->{type});
+  }
 }
 
 1;

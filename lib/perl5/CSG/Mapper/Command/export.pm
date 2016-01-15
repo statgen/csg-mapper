@@ -6,6 +6,9 @@ use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
 sub opt_spec {
+  return (
+    ['build=s', 'Reference build used to mapping these samples'],
+  );
 }
 
 sub validate_args {
@@ -60,7 +63,7 @@ sub _export_topmed {
   my $logger = $self->{stash}->{logger};
   my $schema = $self->{stash}->{schema};
   my $sample = $schema->resultset('Sample')->find($sample_id);
-  my $cmd    = sprintf '/usr/cluster/monitor/bin/topmedcmd.pl %s mapped%d completed', $sample->sample_id, $sample->ref_build;
+  my $cmd    = sprintf '/usr/cluster/monitor/bin/topmedcmd.pl %s mapped%d completed', $sample->sample_id, $opts->{build};
 
   $logger->debug("EXPORT CMD: '$cmd'") if $self->app->global_options->{debug};
 
