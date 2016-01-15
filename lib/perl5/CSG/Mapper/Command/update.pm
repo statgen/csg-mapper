@@ -18,6 +18,7 @@ sub opt_spec {
     ['node=s',      'Update what node(s) a sample is running on in the cluster'],
     ['state=s',     'Update the jobs state (valid states: failed|submitted|completed|cancelled|requested)'],
     ['exit-code=i', 'Update the exit code from a given sample'],
+    ['type=s',      'Job type [bam2fastq|align|all]'],
   );
 }
 
@@ -38,22 +39,20 @@ sub validate_args {
     $self->usage_error('unable to locate the job meta data record');
   }
 
-  if ($opts->{state}) {
-    unless (exists $SAMPLE_STATE{$opts->{state}}) {
-      $self->usage_error('invalid job state');
-    }
+  if ($opts->{state} and not exists $SAMPLE_STATE{$opts->{state}}) {
+    $self->usage_error('invalid job state');
   }
 
-  if ($opts->{start}) {
-    if ($meta->started_at) {
-      $self->usage_error('job has already started');
-    }
+  if ($opts->{start} and $meta->started_at) {
+    $self->usage_error('job has already started');
   }
 
-  if (defined $opts->{exit_code}) {
-    if ($meta->ended_at) {
-      $self->usage_error('job has already ended');
-    }
+  if (defined $opts->{exit_code} and $meta->ended_at) {
+    $self->usage_error('job has already ended');
+  }
+
+  unless ($opts->{type} =~ /bam2fastq|align|all/) {
+    $self->usage_erro('invliad job type');
   }
 }
 

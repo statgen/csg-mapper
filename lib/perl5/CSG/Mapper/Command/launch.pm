@@ -19,6 +19,8 @@ sub opt_spec {
     ['delay=i',      'Amount of time to delay exection in seconds'],
     ['build|b=i',    'Reference build to use (ie; 37 or 38)'],
     ['tmp-dir|t=s',  'Local temporary disk locaiton (defaults to /tmp)'],
+    ['type=s',       'Job type to launch [bam2fastq|align|all]'],
+    ['meta-id=i',    'Job meta record for parent job'],
   );
 }
 
@@ -31,20 +33,36 @@ sub validate_args {
   $self->{stash}->{schema} = $schema;
   $self->{stash}->{config} = $config;
 
-  if ($self->app->global_options->{cluster}) {
-    unless ($self->app->global_options->{cluster} =~ /$VALID_CLUSTER_REGEXPS/) {
-      $self->usage_error('Invalid cluster environment');
-    }
-  } else {
+  unless ($self->app->global_options->{cluster}) {
     $self->usage_error('Cluster environment is required');
+  }
+
+  unless ($self->app->global_options->{cluster} =~ /$VALID_CLUSTER_REGEXPS/) {
+    $self->usage_error('Invalid cluster environment');
   }
 
   unless ($self->app->global_options->{project}) {
     $self->usage_error('Project is required');
-  } else {
-    unless ($config->has_category($self->app->global_options->{project})) {
-      $self->usage_error('Unknown project');
+  }
+
+  unless ($config->has_category($self->app->global_options->{project})) {
+    $self->usage_error('Unknown project');
+  }
+
+  unless ($opts->{type}) {
+    $self->usage_error('Type is required');
+  }
+
+  unless ($opts->{type} =~ /bam2fastq|align|all/) {
+    $self->usage_error('Invalid type specified');
+  }
+
+  if ($opts->{meta_id}) {
+    my $meta = $schema->resultset('Job')->find($opts->{meta_id});
+    unless ($meta) {
+      $self->usage_error('Invalid meta job id');
     }
+    $self->{stash}->{meta} = $meta;
   }
 
   if ($opts->{'tmp-dir'}) {
@@ -66,7 +84,7 @@ sub execute {
   my $schema = $self->{stash}->{schema};
   my $config = $self->{stash}->{config};
 
-  my $project_dir = qq{$FindBin::Bin/../};
+  my $project_dir = qq{$FindBin::Bin/..};
   my $prefix      = $config->get($cluster, 'prefix');
   my $workdir     = $config->get($project, 'workdir');
 
@@ -77,7 +95,22 @@ sub execute {
   my $build    = $opts->{build}    // $config->get($project, 'ref_build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
 
-  for my $sample ($schema->resultset('Sample')->search({state => $SAMPLE_STATE{requested}})) {
+  my $attrs  = {};
+  my $search = {
+    state => $SAMPLE_STATE{requested}
+  };
+
+  my $dep_job_meta = $self->{stash}->{meta};
+  if ($dep_job_meta) {
+    $dep_job_meta = $schema->resultset('Job')->find($opts->{meta_id});
+
+    $search->{'jobs.job_id'} = $dep_job_meta->job_id;
+    $attrs = {join => 'jobs'};
+  }
+
+  my $samples = $schema->resultset('Sample')->search($search, $attrs);
+
+  for my $sample ($samples->all()) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
     my $job_meta = $sample->add_to_jobs(
@@ -111,7 +144,8 @@ sub execute {
       $logger->debug('created basedir') if $debug;
     }
 
-    my $log_dir = File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
+    my $log_dir =
+      File::Spec->join($basedir, $config->get($project, 'log_dir'), $sample_obj->center, $sample_obj->pi, $sample_obj->sample_id);
     $logger->debug("log_dir: $log_dir") if $debug;
     unless (-e $log_dir) {
       make_path($log_dir);
@@ -143,21 +177,22 @@ sub execute {
       croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
 
-    my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$cluster.sh});
+    my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$opts->{type}.$cluster.sh});
     my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
 
     $tt->process(
-      qq{$cluster.sh.tt2}, {
+      qq{$opts->{type}.sh.tt2}, {
         job => {
-          procs    => $procs,
-          memory   => $memory,
-          walltime => $walltime,
-          build    => $build,
-          email    => $config->get($project, 'email'),
-          job_name => $project . $DASH . $sample_obj->sample_id,
-          account  => $config->get($cluster, 'account'),
-          workdir  => $log_dir,
-          cluster  => $cluster,
+          procs      => $procs,
+          memory     => $memory,
+          walltime   => $walltime,
+          build      => $build,
+          email      => $config->get($project, 'email'),
+          job_name   => $project . $DASH . $sample_obj->sample_id,    # TODO - include job type in filename
+          account    => $config->get($cluster, 'account'),
+          workdir    => $log_dir,
+          job_dep_id => ($dep_job_meta) ? $dep_job_meta->job_id : undef,
+          nodelist   => ($dep_job_meta) ? $dep_job_meta->node   : undef,
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,                 $project),
@@ -171,6 +206,7 @@ sub execute {
           threads         => $procs,
           meta_id         => $job_meta->id,
           mapper_cmd      => $PROGRAM_NAME,
+          cluster         => $cluster,
         },
         gotcloud => {
           root    => $gotcloud_root,

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[% IF settings.cluster == 'csg' %]
+[% IF settings.cluster == 'csg' -%]
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=[% job.procs %]
 #SBATCH --mem=[% job.memory %]
@@ -16,7 +16,7 @@
 
 JOB_ID=$SLURM_JOB_ID
 NODELIST=$SLURM_JOB_NODELIST
-[% ELSIF settings.cluster == 'flux' %]
+[% ELSIF settings.cluster == 'flux' -%]
 #PBS -l nodes=1:ppn=[% job.procs %]:[% job.nodelist %]
 #BPS -l walltime=[% job.walltime %]
 #PBS -l pmem=4gb
@@ -34,11 +34,11 @@ NODELIST=$SLURM_JOB_NODELIST
 
 JOB_ID=$PBS_JOBID
 NODELIST=$(cat $PBS_NODEFILE)
-[% END %]
+[% END -%]
 
 OUT_DIR=[% settings.out_dir %]
 MAPPER_CMD=[% settings.mapper_cmd %]
-TMP_DIR="[% settings.tmp_dir %]/[% sample.sample_id %]"
+TMP_DIR=[% settings.tmp_dir %]/[% sample.sample_id %]
 
 export PERL_CARTON_PATH=[% settings.project_dir %]/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}
