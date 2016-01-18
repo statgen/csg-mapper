@@ -51,8 +51,8 @@ sub validate_args {
     $self->usage_error('job has already ended');
   }
 
-  unless ($opts->{type} =~ /bam2fastq|align|all/) {
-    $self->usage_erro('invliad job type');
+  if ($opts->{type} and $opts->{type} !~ /bam2fastq|align|all/) {
+    $self->usage_error('invalid job type');
   }
 }
 
