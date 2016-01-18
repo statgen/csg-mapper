@@ -126,6 +126,11 @@ sub execute {
     my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample, build => $build);
     my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
 
+    unless (-e $sample_obj->result_path) {
+      $logger->debug('creating out_dir');
+      make_path($sample_obj->result_path);
+    }
+
     if ($debug) {
       $logger->debug("cluster: $cluster");
       $logger->debug("procs: $procs");
@@ -196,7 +201,7 @@ sub execute {
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,                 $project),
-          job_log         => File::Spec->join($sample_obj->result_path, q{job.yml}),
+          job_log         => File::Spec->join($sample_obj->result_path, qq{job-$opts->{type}.yml}),
           pipeline        => $config->get('pipelines',                  $sample_obj->center),
           max_failed_runs => $config->get($project,                     'max_failed_runs'),
           out_dir         => $sample_obj->result_path,
@@ -207,6 +212,7 @@ sub execute {
           meta_id         => $job_meta->id,
           mapper_cmd      => $PROGRAM_NAME,
           cluster         => $cluster,
+          project         => $project,
         },
         gotcloud => {
           root    => $gotcloud_root,
