@@ -33,49 +33,54 @@ JOB_ID=$PBS_JOBID
 NODELIST=$(cat $PBS_NODEFILE)
 [% END -%]
 
+META_ID=[% settings.meta_id %]
 MAPPER_CMD=[% settings.mapper_cmd %]
+MAPPER_LOG_CMD="$MAPPER_CMD log --meta-id $META_ID"
+MAPPER_UPDATE_CMD="$MAPPER_CMD update --meta-id $META_ID"
+
 TMP_DIR=[% settings.tmp_dir %]/[% sample.sample_id %]
+RUN_DIR=[% settings.run_dir %]
 
 export PERL_CARTON_PATH=[% settings.project_dir %]/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}
 export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
-$MAPPER_CMD update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST --type bam2fastq
+$MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --type bam2fastq
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'starting remapping pipeline'
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "job env: $(env|tr '\n', ' ')"
+$MAPPER_LOG_CMD --message 'starting remapping pipeline'
+$MAPPER_LOG_CMD --message "job env: $(env|tr '\n', ' ')"
 
 if [ -e $TMP_DIR ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'removing existing TMP_DIR'
+  $MAPPER_LOG_CMD --message 'removing existing TMP_DIR'
   rm -rf $TMP_DIR
 fi
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating TMP_DIR'
+$MAPPER_LOG_CMD --message 'creating TMP_DIR'
 mkdir -p $TMP_DIR
 
 if [ $? -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% setings.meta_id %] --message 'failed to create TMP_DIR' --level critical
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
+  $MAPPER_LOG_CMD --message 'failed to create TMP_DIR' --level critical
+  $MAPPER_UPDATE_CMD --state failed
   exit 1
 fi
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'setting permissions on TMP_DIR'
+$MAPPER_LOG_CMD --message 'setting permissions on TMP_DIR'
 chmod 750 $TMP_DIR
 
 if [ $? -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to set permissions on TMP_DIR' --level critical
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
+  $MAPPER_LOG_CMD --message 'failed to set permissions on TMP_DIR' --level critical
+  $MAPPER_UPDATE_CMD --state failed
   exit 1
 fi
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating bam.list'
+$MAPPER_LOG_CMD --message 'creating bam.list'
 echo "[% sample.sample_id %] [% sample.incoming_path %]" > "${TMP_DIR}/bam.list"
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "delaying execution for [% settings.delay %] minutes"
+$MAPPER_LOG_CMD --message "delaying execution for [% settings.delay %] minutes"
 sleep "[% settings.delay %]m"
 
-$MAPPER_CMD show --meta-id [% settings.meta_id %] --info > [% settings.job_log %]
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'beginning bam2fastq pipeline'
+$MAPPER_CMD show --meta-id $META_ID --info > [% settings.job_log %]
+$MAPPER_LOG_CMD --message 'beginning bam2fastq pipeline'
 
 [% gotcloud.cmd %] pipe \
   --gcroot  [% gotcloud.root %] \
@@ -86,17 +91,26 @@ $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'beginning bam2fastq 
   --outdir  $TMP_DIR
 
 rc=$?
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "pipe_rc: $rc"
+$MAPPER_LOG_CMD --message "pipe_rc: $rc"
 
 if [ "$rc" -eq 0 ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "[% settings.pipeline %] completed with exit code $rc"
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state completed --exit-code $rc
-  $MAPPER_CMD launch --project [% settings.project %] --cluster [% settings.cluster %] --meta-id [% settings.meta_id %] --type alignment
+  $MAPPER_LOG_CMD --message "[% settings.pipeline %] completed with exit code $rc"
+  $MAPPER_UPDATE_CMD --state completed --exit-code $rc
+  $MAPPER_CMD launch --project [% settings.project %] --cluster [% settings.cluster %] --meta-id $META_ID --type align
 else
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "[% settings.pipeline %] failed with exit code $rc" --level critical
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
+  $MAPPER_LOG_CMD --message "[% settings.pipeline %] failed with exit code $rc" --level critical
+  $MAPPER_UPDATE_CMD --state failed --exit-code $rc
+
+  if [ ! -e $RUN_DIR ]; then
+    $MAPPER_LOG_CMD --message 'RUN_DIR does not exist' --level critical
+    exit $rc
+  fi
 
   mv $TMP_DIR $RUN_DIR
+  if [ $? -ne 0 ]; then
+    $MAPPER_LOG_CMD --mesage 'failed to move TMP_DIR to RUN_DIR' --level critical
+    exit $rc
+  fi
 
   max_runs=[% settings.max_failed_runs %]
   run_count=$(find $RUN_DIR -maxdepth 1 -type d|wc -l)
@@ -106,7 +120,7 @@ else
     count=0
     for run in $runs; do
       if [ $(($run_count - $max_runs)) -gt $count ]; then
-        $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "purging sample [$(basename $run)] from RUN_DIR"
+        $MAPPER_LOG_CMD --message "purging sample [$(basename $run)] from RUN_DIR"
         rm -rf $run
       fi
 

@@ -36,40 +36,44 @@ JOB_ID=$PBS_JOBID
 NODELIST=$(cat $PBS_NODEFILE)
 [% END -%]
 
-OUT_DIR=[% settings.out_dir %]
+META_ID=[% settings.meta_id %]
 MAPPER_CMD=[% settings.mapper_cmd %]
+MAPPER_LOG_CMD="$MAPPER_CMD log --meta-id $META_ID"
+MAPPER_UPDATE_CMD="$MAPPER_CMD update --meta-id $META_ID"
+
+OUT_DIR=[% settings.out_dir %]
 TMP_DIR=[% settings.tmp_dir %]/[% sample.sample_id %]
 
 export PERL_CARTON_PATH=[% settings.project_dir %]/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}
 export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
-$MAPPER_CMD update --meta-id [% settings.meta_id %] --start --job-id $JOB_ID --node $NODELIST --state align
+$MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --type align --state submitted
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "job env: $(env|tr '\n', ' ')"
+$MAPPER_LOG_CMD --message "job env: $(env|tr '\n', ' ')"
 
 if [ -e $OUT_DIR ]; then
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'found existing OUT_DIR deleting'
+  $MAPPER_LOG_CMD --message 'found existing OUT_DIR deleting'
   rm -rfv $OUT_DIR
 
   if [ $? -ne 0 ]; then
-    $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'failed to remove existing OUT_DIR' --level critical
-    $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
+    $MAPPER_LOG_CMD --message 'failed to remove existing OUT_DIR' --level critical
+    $MAPPER_UPDATE_CMD --state failed
     exit 1
   fi
 fi
 
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'creating OUT_DIR'
+$MAPPER_LOG_CMD --message 'creating OUT_DIR'
 mkdir -p $OUT_DIR
 
 if [ $? -ne 0 ]; then
-  $MAPPER_CMD log --meta-id [% setings.meta_id %] --message 'failed to create OUT_DIR and' --level critical
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed
+  $MAPPER_LOG_CMD --message 'failed to create OUT_DIR and' --level critical
+  $MAPPER_UPDATE_CMD --state failed
   exit 1
 fi
 
-$MAPPER_CMD show --meta-id [% settings.meta_id %] --info > [% settings.job_log %]
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'begining gotcloud alignment'
+$MAPPER_CMD show --meta-id $META_ID --info > [% settings.job_log %]
+$MAPPER_LOG_CMD --message 'begining gotcloud alignment'
 
 [% gotcloud.cmd %] align \
   --gcroot       [% gotcloud.root %] \
@@ -82,16 +86,16 @@ $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'begining gotcloud al
   --maxlocaljobs [% settings.threads %]
 
 rc=$?
-$MAPPER_CMD log --meta-id [% settings.meta_id %] --message "align_rc: $rc"
+$MAPPER_LOG_CMD --message "align_rc: $rc"
 
 if [ "$rc" -eq 0 ]; then
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state completed --exit-code $rc
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message 'alignment completed'
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "purging $TMP_DIR on $NODELIST"
+  $MAPPER_UPDATE_CMD --state completed --exit-code $rc
+  $MAPPER_LOG_CMD --message 'alignment completed'
+  $MAPPER_LOG_CMD --message "purging $TMP_DIR on $NODELIST"
   rm -rf $TMP_DIR
 else
-  $MAPPER_CMD update --meta-id [% settings.meta_id %] --state failed --exit-code $rc
-  $MAPPER_CMD log --meta-id [% settings.meta_id %] --message "alignment failed with exit code $rc" --level critical
+  $MAPPER_UPDATE_CMD --state failed --exit-code $rc
+  $MAPPER_LOG_CMD --message "alignment failed with exit code $rc" --level critical
 fi
 
 exit $rc
