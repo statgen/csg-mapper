@@ -17,20 +17,20 @@ sub validate_args {
 
   my $config = CSG::Mapper::Config->new();
 
-  if ($self->app->global_options->{cluster}) {
-    unless ($self->app->global_options->{cluster} =~ /$VALID_CLUSTER_REGEXPS/) {
-      $self->usage_error('Invalid cluster environment');
-    }
-  } else {
+  unless ($self->app->global_options->{cluster}) {
     $self->usage_error('Cluster environment is required');
   }
 
-  if ($self->app->global_options->{project}) {
-    unless ($config->has_category($self->app->global_options->{project})) {
-      $self->usage_error('Invalid project specified');
-    }
-  } else {
+  unless ($self->app->global_options->{cluster} =~ /$VALID_CLUSTER_REGEXPS/) {
+    $self->usage_error('Invalid cluster environment');
+  }
+
+  unless ($self->app->global_options->{project}) {
     $self->usage_error('Project is required');
+  }
+
+  unless ($config->has_category($self->app->global_options->{project})) {
+    $self->usage_error('Invalid project specified');
   }
 
   unless (-e $opts->{filename}) {
