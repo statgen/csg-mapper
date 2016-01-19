@@ -91,12 +91,6 @@ __PACKAGE__->table("samples");
   is_nullable: 0
   size: 45
 
-=head2 state
-
-  data_type: 'integer'
-  default_value: 0
-  is_nullable: 0
-
 =head2 fullpath
 
   data_type: 'text'
@@ -142,8 +136,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "run_dir",
   { data_type => "varchar", is_nullable => 0, size => 45 },
-  "state",
-  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "fullpath",
   { data_type => "text", is_nullable => 0 },
   "exported_at",
@@ -211,21 +203,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 jobs
-
-Type: has_many
-
-Related object: L<CSG::Mapper::DB::Schema::Result::Job>
-
-=cut
-
-__PACKAGE__->has_many(
-  "jobs",
-  "CSG::Mapper::DB::Schema::Result::Job",
-  { "foreign.sample_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pi
 
 Type: belongs_to
@@ -256,6 +233,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 results
+
+Type: has_many
+
+Related object: L<CSG::Mapper::DB::Schema::Result::Result>
+
+=cut
+
+__PACKAGE__->has_many(
+  "results",
+  "CSG::Mapper::DB::Schema::Result::Result",
+  { "foreign.sample_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 study
 
 Type: belongs_to
@@ -272,6 +264,6 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-15 10:13:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GM4coTt361JuVZUZHNIVcQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-19 09:21:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9mcQlm+/maEhtyG67glB2w
 1;

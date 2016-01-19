@@ -53,7 +53,10 @@ sub validate_args {
     $self->usage_error('Step is required');
   }
 
-  unless ($opts->{step} =~ /bam2fastq|align|all/) {
+
+  my $step = $schema->resultset('Step')->find({name => $opts->{step}});
+  $self->{stash}->{step} = $step;
+  unless ($step) {
     $self->usage_error('Invalid step specified');
   }
 
@@ -83,6 +86,7 @@ sub execute {
   my $jobs   = 0;
   my $schema = $self->{stash}->{schema};
   my $config = $self->{stash}->{config};
+  my $step   = $self->{stash}->{step};
 
   my $project_dir = qq{$FindBin::Bin/..};
   my $prefix      = $config->get($cluster, 'prefix');
@@ -95,31 +99,41 @@ sub execute {
   my $build    = $opts->{build}    // $config->get($project, 'build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
 
-  my $attrs  = {};
-  my $search = {
-    state => $SAMPLE_STATE{requested}
-  };
-
+  my @samples      = ();
   my $dep_job_meta = $self->{stash}->{meta};
   if ($dep_job_meta) {
-    $dep_job_meta = $schema->resultset('Job')->find($opts->{meta_id});
-
-    $search->{'jobs.job_id'} = $dep_job_meta->job_id;
-    $attrs = {join => 'jobs'};
+    push @samples, $dep_job_meta->result->sample;
+  } else {
+    @samples = $schema->resultset('Sample')->all();
   }
 
-  my $samples = $schema->resultset('Sample')->search($search, $attrs);
-
-  for my $sample ($samples->all()) {
+  for my $sample (@samples) {
     last if $opts->{limit} and ++$jobs > $opts->{limit};
 
-    my $job_meta = $sample->add_to_jobs(
+    my $result = $sample->results->search({build => $build})->first;
+
+    unless ($dep_job_meta) {
+      unless ($result) {
+        $result = $sample->add_to_results(
+          {
+            build    => $build,
+            state_id => $schema->resultset('State')->find({name => 'requested'})->id,
+          }
+        );
+      }
+
+      next if $result->state->name ne 'requested';
+      next if $result->build ne $build;
+    }
+
+    my $job_meta = $result->add_to_jobs(
       {
         cluster  => $cluster,
         procs    => $procs,
         memory   => $memory,
         walltime => $walltime,
         delay    => $delay,
+        step_id  => $step->id,
       }
     );
 
@@ -182,18 +196,18 @@ sub execute {
       croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
 
-    my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$opts->{step}.$cluster.sh});
+    my $job_file = File::Spec->join($run_dir, join($DASH, ($sample_obj->sample_id, $step->name, $cluster . '.sh')));
     my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
 
     $tt->process(
-      qq{$opts->{step}.sh.tt2}, {
+      $step->name . q{.sh.tt2}, {
         job => {
           procs      => $procs,
           memory     => $memory,
           walltime   => $walltime,
           build      => $build,
           email      => $config->get($project, 'email'),
-          job_name   => join($DASH, ($project, $opts->{step}, $sample_obj->sample_id)),
+          job_name   => join($DASH, ($project, $step->name, $sample_obj->sample_id)),
           account    => $config->get($cluster, 'account'),
           workdir    => $log_dir,
           job_dep_id => ($dep_job_meta) ? $dep_job_meta->job_id : undef,
@@ -201,7 +215,7 @@ sub execute {
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,                 $project),
-          job_log         => File::Spec->join($sample_obj->result_path, qq{job-$opts->{step}.yml}),
+          job_log         => File::Spec->join($sample_obj->result_path, 'job-' . $step->name . '.yml'),
           pipeline        => $config->get('pipelines',                  $sample_obj->center),
           max_failed_runs => $config->get($project,                     'max_failed_runs'),
           out_dir         => $sample_obj->result_path,
@@ -268,7 +282,7 @@ sub execute {
         unless (@_) {
           $logger->info('submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
 
-          $sample->update({state => $SAMPLE_STATE{submitted}});
+          $result->update({step_id => $schema->resultset('State')->find({name => 'submitted'})->id});
           $job_meta->update(
             {
               job_id       => $job->job_id(),

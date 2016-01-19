@@ -43,7 +43,7 @@ __PACKAGE__->table("jobs");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 sample_id
+=head2 result_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -52,6 +52,12 @@ __PACKAGE__->table("jobs");
 =head2 job_id
 
   data_type: 'integer'
+  is_nullable: 0
+
+=head2 step_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
 
 =head2 cluster
@@ -99,20 +105,6 @@ __PACKAGE__->table("jobs");
   default_value: 0
   is_nullable: 1
 
-=head2 build
-
-  data_type: 'varchar'
-  default_value: 38
-  is_nullable: 0
-  size: 45
-
-=head2 type
-
-  data_type: 'varchar'
-  default_value: 'all'
-  is_nullable: 0
-  size: 45
-
 =head2 submitted_at
 
   data_type: 'datetime'
@@ -149,10 +141,12 @@ __PACKAGE__->table("jobs");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "sample_id",
+  "result_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "job_id",
   { data_type => "integer", is_nullable => 0 },
+  "step_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "cluster",
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "procs",
@@ -169,15 +163,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "delay",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
-  "build",
-  { data_type => "varchar", default_value => 38, is_nullable => 0, size => 45 },
-  "type",
-  {
-    data_type => "varchar",
-    default_value => "all",
-    is_nullable => 0,
-    size => 45,
-  },
   "submitted_at",
   {
     data_type => "datetime",
@@ -240,24 +225,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 sample
+=head2 result
 
 Type: belongs_to
 
-Related object: L<CSG::Mapper::DB::Schema::Result::Sample>
+Related object: L<CSG::Mapper::DB::Schema::Result::Result>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "sample",
-  "CSG::Mapper::DB::Schema::Result::Sample",
-  { id => "sample_id" },
+  "result",
+  "CSG::Mapper::DB::Schema::Result::Result",
+  { id => "result_id" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+=head2 step
+
+Type: belongs_to
+
+Related object: L<CSG::Mapper::DB::Schema::Result::Step>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "step",
+  "CSG::Mapper::DB::Schema::Result::Step",
+  { id => "step_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-15 10:13:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YeREbGI8SAInfBk0Xt610g
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-19 09:21:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7idfHfC64a/8/lCHjYZ8OA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
