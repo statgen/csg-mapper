@@ -258,3 +258,29 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Data for table `csgmapper`.`states`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `csgmapper`;
+INSERT INTO `csgmapper`.`states` (`id`, `name`) VALUES (DEFAULT, 'failed');
+INSERT INTO `csgmapper`.`states` (`id`, `name`) VALUES (DEFAULT, 'requested');
+INSERT INTO `csgmapper`.`states` (`id`, `name`) VALUES (DEFAULT, 'cancelled');
+INSERT INTO `csgmapper`.`states` (`id`, `name`) VALUES (DEFAULT, 'submitted');
+INSERT INTO `csgmapper`.`states` (`id`, `name`) VALUES (DEFAULT, 'completed');
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `csgmapper`.`steps`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `csgmapper`;
+INSERT INTO `csgmapper`.`steps` (`id`, `name`) VALUES (DEFAULT, 'bam2fastq');
+INSERT INTO `csgmapper`.`steps` (`id`, `name`) VALUES (DEFAULT, 'align');
+INSERT INTO `csgmapper`.`steps` (`id`, `name`) VALUES (DEFAULT, 'all');
+
+COMMIT;
+
