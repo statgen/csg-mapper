@@ -19,7 +19,7 @@ sub opt_spec {
     ['delay=i',      'Amount of time to delay exection in seconds'],
     ['build|b=i',    'Reference build to use (ie; 37 or 38)'],
     ['tmp-dir|t=s',  'Local temporary disk locaiton (defaults to /tmp)'],
-    ['type=s',       'Job type to launch [bam2fastq|align|all]'],
+    ['step=s',       'Job step to launch [bam2fastq|align|all]'],
     ['meta-id=i',    'Job meta record for parent job'],
   );
 }
@@ -49,12 +49,12 @@ sub validate_args {
     $self->usage_error('Unknown project');
   }
 
-  unless ($opts->{type}) {
-    $self->usage_error('Type is required');
+  unless ($opts->{step}) {
+    $self->usage_error('Step is required');
   }
 
-  unless ($opts->{type} =~ /bam2fastq|align|all/) {
-    $self->usage_error('Invalid type specified');
+  unless ($opts->{step} =~ /bam2fastq|align|all/) {
+    $self->usage_error('Invalid step specified');
   }
 
   if ($opts->{meta_id}) {
@@ -182,18 +182,18 @@ sub execute {
       croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
 
-    my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$opts->{type}.$cluster.sh});
+    my $job_file = File::Spec->join($run_dir, $sample_obj->sample_id . qq{.$opts->{step}.$cluster.sh});
     my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
 
     $tt->process(
-      qq{$opts->{type}.sh.tt2}, {
+      qq{$opts->{step}.sh.tt2}, {
         job => {
           procs      => $procs,
           memory     => $memory,
           walltime   => $walltime,
           build      => $build,
           email      => $config->get($project, 'email'),
-          job_name   => $project . $DASH . $sample_obj->sample_id,    # TODO - include job type in filename
+          job_name   => join($DASH, ($project, $opts->{step}, $sample_obj->sample_id)),
           account    => $config->get($cluster, 'account'),
           workdir    => $log_dir,
           job_dep_id => ($dep_job_meta) ? $dep_job_meta->job_id : undef,
@@ -201,7 +201,7 @@ sub execute {
         },
         settings => {
           tmp_dir         => File::Spec->join($tmp_dir,                 $project),
-          job_log         => File::Spec->join($sample_obj->result_path, qq{job-$opts->{type}.yml}),
+          job_log         => File::Spec->join($sample_obj->result_path, qq{job-$opts->{step}.yml}),
           pipeline        => $config->get('pipelines',                  $sample_obj->center),
           max_failed_runs => $config->get($project,                     'max_failed_runs'),
           out_dir         => $sample_obj->result_path,

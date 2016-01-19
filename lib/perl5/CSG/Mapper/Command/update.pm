@@ -18,7 +18,7 @@ sub opt_spec {
     ['node=s',      'Update what node(s) a sample is running on in the cluster'],
     ['state=s',     'Update the jobs state (valid states: failed|submitted|completed|cancelled|requested)'],
     ['exit-code=i', 'Update the exit code from a given sample'],
-    ['type=s',      'Job type [bam2fastq|align|all]'],
+    ['step=s',      'Job step [bam2fastq|align|all]'],
   );
 }
 
@@ -51,8 +51,12 @@ sub validate_args {
     $self->usage_error('job has already ended');
   }
 
-  if ($opts->{type} and $opts->{type} !~ /bam2fastq|align|all/) {
-    $self->usage_error('invalid job type');
+  unless ($opts->{step}) {
+    $self->usage_error('step is required');
+  }
+
+  unless ($opts->{step} =~ /bam2fastq|align|all/) {
+    $self->usage_error('invalid job step');
   }
 }
 
@@ -87,8 +91,8 @@ sub execute {
     );
   }
 
-  if ($opts->{type}) {
-    $meta->update({type => $opts->{type}});
+  if ($opts->{step}) {
+    $meta->update({type => $opts->{step}});
   }
 }
 
