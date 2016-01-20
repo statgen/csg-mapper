@@ -6,9 +6,7 @@ use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
 sub opt_spec {
-  return (
-    ['build=s', 'Reference build used to mapping these samples'],
-  );
+  return (['build=s', 'Reference build used to mapping these samples'],);
 }
 
 sub validate_args {
@@ -38,37 +36,35 @@ sub validate_args {
 sub execute {
   my ($self, $opts, $args) = @_;
 
+  my $project = $self->app->global_options->{project};
   my $schema  = $self->{stash}->{schema};
-  my $results = $schema->resultset('Project')->search(
+  my $results = $schema->resultset('Result')->search(
     {
-      'me.name'             => $self->app->global_options->{project},
-      'samples.exported_at' => undef,
+      'me.build'           => $opts->{build},
+      'sample.exported_at' => undef,
+      'state.name'         => 'completed',
+      'project.name'       => $project,
     }, {
-      join      => 'samples',
-      '+select' => [qw(samples.id)],
-      '+as'     => [qw(sample_id)],
-
-    }
+      join => ['state', {sample => 'project'}],
+    },
   );
 
   while (my $result = $results->next) {
-    my $export_meth = '_export_' . $result->name;
-    $self->$export_meth($result->get_column('sample_id'), $opts->{build});
+    my $export_meth = qq{_export_$project};
+    $self->$export_meth($result->sample, $result->build);
   }
 }
 
 sub _export_topmed {
-  my ($self, $sample_id, $build) = @_;
+  my ($self, $sample, $build) = @_;
 
   my $logger = $self->{stash}->{logger};
-  my $schema = $self->{stash}->{schema};
-  my $sample = $schema->resultset('Sample')->find($sample_id);
-  my $cmd    = sprintf '/usr/cluster/monitor/bin/topmedcmd.pl %s mapped%d completed', $sample->sample_id, $build;
+  my $cmd = sprintf '/usr/cluster/monitor/bin/topmedcmd.pl %s mapped%d completed', $sample->sample_id, $build;
 
   $logger->debug("EXPORT CMD: '$cmd'") if $self->app->global_options->{debug};
 
   try {
-    run($cmd);
+    run($cmd) unless $self->app->global_options->{dry_run};
     $logger->info('Exported sample[' . $sample->sample_id . '] to topmedcmd ') if $self->app->global_options->{verbose};
     $sample->update({exported_at => DateTime->now()});
   }
