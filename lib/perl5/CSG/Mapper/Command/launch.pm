@@ -287,7 +287,7 @@ sub execute {
         unless (@_) {
           $logger->info('submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
 
-          $result->update({step_id => $schema->resultset('State')->find({name => 'submitted'})->id});
+          $result->update({state_id => $schema->resultset('State')->find({name => 'submitted'})->id});
           $job_meta->update(
             {
               job_id       => $job->job_id(),
