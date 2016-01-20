@@ -92,7 +92,12 @@ sub execute {
   my $prefix      = $config->get($cluster, 'prefix');
   my $workdir     = $config->get($project, 'workdir');
 
-  my $procs    = $opts->{procs}    // $config->get($project, 'procs');
+  my $procs = ($opts->{procs})
+    ? $opts->{procs}
+    : ($config->get($cluster, $step->name . '_procs'))
+      ? $config->get($cluster, $step->name . '_procs')
+      : $config->get($project, 'procs');
+
   my $memory   = $opts->{memory}   // $config->get($project, 'memory');
   my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
   my $delay    = $opts->{delay}    // int(rand($MAX_DELAY));
