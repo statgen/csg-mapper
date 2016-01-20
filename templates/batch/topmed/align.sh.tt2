@@ -48,7 +48,7 @@ export PERL_CARTON_PATH=[% settings.project_dir %]/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}
 export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
-$MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --step align --state submitted
+$MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --step align
 
 $MAPPER_LOG_CMD --message "job env: $(env|tr '\n', ' ')"
 
