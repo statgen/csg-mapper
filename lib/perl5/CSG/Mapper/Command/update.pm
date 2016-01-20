@@ -1,7 +1,4 @@
 ## no critic (NamingConventions::Capitalization, Subroutines::RequireFinalReturn)
-#
-# TODO - add logging
-#
 package CSG::Mapper::Command::update;
 
 use CSG::Mapper -command;
@@ -9,6 +6,7 @@ use CSG::Base;
 use CSG::Constants qw(:mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
+use CSG::Mapper::Logger;
 
 sub opt_spec {
   return (
@@ -32,15 +30,18 @@ sub validate_args {
   my $schema = CSG::Mapper::DB->new();
   my $meta   = $schema->resultset('Job')->find($opts->{meta_id});
 
-  $self->{stash}->{schema} = $schema;
-  $self->{stash}->{meta}   = $meta;
-
   unless ($meta) {
     $self->usage_error('unable to locate the job meta data record');
   }
 
-  if ($opts->{state} and not exists $SAMPLE_STATE{$opts->{state}}) {
-    $self->usage_error('invalid job state');
+  if ($opts->{state}) {
+    my $state = $schema->resultset('State')->find({name => $opts->{state}});
+
+    unless ($state) {
+      $self->usage_error('invalid job state');
+    }
+
+    $self->{stash}->{state}  = $state;
   }
 
   if ($opts->{start} and $meta->started_at) {
@@ -55,9 +56,14 @@ sub validate_args {
     $self->usage_error('step is required');
   }
 
-  unless ($opts->{step} =~ /bam2fastq|align|all/) {
+  my $step = $schema->resultset('Step')->find({name => $opts->{step}});
+  unless ($step) {
     $self->usage_error('invalid job step');
   }
+
+  $self->{stash}->{schema} = $schema;
+  $self->{stash}->{meta}   = $meta;
+  $self->{stash}->{step}   = $step;
 }
 
 sub execute {
@@ -65,34 +71,44 @@ sub execute {
 
   my $meta   = $self->{stash}->{meta};
   my $schema = $self->{stash}->{schema};
+  my $state  = $self->{stash}->{state};
+  my $step   = $self->{stash}->{step};
+
+  my $logger = CSG::Mapper::Logger->new(job_id => $meta->id);
+  my $params = {};
 
   if ($opts->{start}) {
-    $meta->update({started_at => $schema->now()});
+    $params->{started_at} = $schema->now();
   }
 
   if ($opts->{job_id}) {
-    $meta->update({job_id => $opts->{job_id}});
+    $params->{job_id} = $opts->{job_id};
   }
 
   if ($opts->{node}) {
-    $meta->update({node => $opts->{node}});
-  }
-
-  if ($opts->{state}) {
-    $meta->sample->update({state => $SAMPLE_STATE{$opts->{state}}});
-  }
-
-  if (defined $opts->{exit_code}) {
-    $meta->update(
-      {
-        exit_code => $opts->{exit_code},
-        ended_at  => $schema->now(),
-      }
-    );
+    $params->{node} = $opts->{node};
   }
 
   if ($opts->{step}) {
-    $meta->update({type => $opts->{step}});
+    $params->{step_id} = $step->id;
+  }
+
+  if (defined $opts->{exit_code}) {
+    $params->{exit_code} = $opts->{exit_code};
+    $params->{ended_at}  = $schema->now();
+  }
+
+  if (keys %{$params}) {
+    for my $key (keys %{$params}) {
+      $logger->info("updating $key to $params->{$key}");
+    }
+
+    $meta->update($params);
+  }
+
+  if ($state) {
+    $logger->info('changing result state from ' . $meta->result->state->name . ' to ' . $state->name);
+    $meta->result->update({state_id => $state->id});
   }
 }
 
