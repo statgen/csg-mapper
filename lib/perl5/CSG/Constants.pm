@@ -33,7 +33,6 @@ our @EXPORT_OK = (
     $TIMEZONE
     $VALID_CLUSTER_REGEXPS
     @TIME_FORMAT_REGEXPS
-    %SAMPLE_STATE
     )
 );
 
@@ -53,7 +52,6 @@ our %EXPORT_TAGS = (
       $VALID_CLUSTER_REGEXPS
       $MAX_DELAY
       @TIME_FORMAT_REGEXPS
-      %SAMPLE_STATE
       )
   ],
   basic => [
@@ -74,7 +72,6 @@ our %EXPORT_TAGS = (
       $VALID_CLUSTER_REGEXPS
       $MAX_DELAY
       @TIME_FORMAT_REGEXPS
-      %SAMPLE_STATE
       )
   ],
 );
@@ -107,14 +104,5 @@ Readonly::Array our @TIME_FORMAT_REGEXPS => (
   # sssssss
   qr/(?<seconds>\d{1,7})/,
 );
-
-Readonly::Hash our %SAMPLE_STATE => (
-  failed    => -1,
-  requested => 0,
-  cancelled => 1,
-  submitted => 2,
-  completed => 3,
-);
-
 
 1;
