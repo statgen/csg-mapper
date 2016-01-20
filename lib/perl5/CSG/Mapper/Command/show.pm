@@ -37,17 +37,17 @@ sub execute {
   if ($opts->{info}) {
     my $info = {
       sample => {
-        id        => $meta->sample->id,
-        sample_id => $meta->sample->sample_id,
-        center    => $meta->sample->center->name,
-        study     => $meta->sample->study->name,
-        pi        => $meta->sample->pi->name,
-        host      => $meta->sample->host->name,
-        filename  => $meta->sample->filename,
-        run_dir   => $meta->sample->run_dir,
-        state     => $meta->sample->state,
-        build     => $meta->build,
-        fullpath  => $meta->sample->fullpath,
+        id        => $meta->result->sample->id,
+        sample_id => $meta->result->sample->sample_id,
+        center    => $meta->result->sample->center->name,
+        study     => $meta->result->sample->study->name,
+        pi        => $meta->result->sample->pi->name,
+        host      => $meta->result->sample->host->name,
+        filename  => $meta->result->sample->filename,
+        run_dir   => $meta->result->sample->run_dir,
+        state     => $meta->result->state->name,
+        build     => $meta->result->build,
+        fullpath  => $meta->result->sample->fullpath,
       },
       job => {
         id        => $meta->id,
@@ -58,7 +58,7 @@ sub execute {
         walltime  => $meta->walltime,
         node      => $meta->node,
         delay     => $meta->delay,
-        submitted => ($meta->submitted_at) ?$meta->submitted_at->ymd . $SPACE . $meta->submitted_at->hms : $EMPTY,
+        submitted => ($meta->submitted_at) ? $meta->submitted_at->ymd . $SPACE . $meta->submitted_at->hms : $EMPTY,
         created   => $meta->created_at->ymd . $SPACE . $meta->created_at->hms,
       }
     };
