@@ -32,7 +32,7 @@ sub _set_job_id {
       CSG::Mapper::Logger::Dispatch::DBI->new(
         dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
         table     => 'logs',
-        min_level => 'notice',
+        min_level => 'info',
       )
     );
   }
