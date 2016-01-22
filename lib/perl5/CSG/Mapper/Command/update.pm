@@ -4,7 +4,6 @@ package CSG::Mapper::Command::update;
 use CSG::Mapper -command;
 use CSG::Base;
 use CSG::Constants qw(:mapping);
-use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 use CSG::Mapper::Logger;
 

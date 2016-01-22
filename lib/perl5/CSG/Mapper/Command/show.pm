@@ -3,7 +3,6 @@ package CSG::Mapper::Command::show;
 use CSG::Mapper -command;
 use CSG::Base qw(formats);
 use CSG::Constants;
-use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
 sub opt_spec {

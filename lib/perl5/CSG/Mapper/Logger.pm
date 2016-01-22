@@ -26,7 +26,7 @@ sub _set_job_id {
   my ($self, $new, $prev) = @_;
 
   unless ($self->has_job_id) {
-    my $conf = CSG::Mapper::Config->new();
+    my $conf = CSG::Mapper::Config->new(project => 'topmed');
 
     $self->logger->add(
       CSG::Mapper::Logger::Dispatch::DBI->new(

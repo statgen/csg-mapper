@@ -28,10 +28,8 @@ sub validate_args {
   my ($self, $opts, $args) = @_;
 
   my $schema = CSG::Mapper::DB->new();
-  my $config = CSG::Mapper::Config->new();
 
   $self->{stash}->{schema} = $schema;
-  $self->{stash}->{config} = $config;
 
   unless ($self->app->global_options->{cluster}) {
     $self->usage_error('Cluster environment is required');
@@ -44,6 +42,9 @@ sub validate_args {
   unless ($self->app->global_options->{project}) {
     $self->usage_error('Project is required');
   }
+
+  my $config = CSG::Mapper::Config->new(project => $self->app->global_options->{project});
+  $self->{stash}->{config} = $config;
 
   unless ($config->has_category($self->app->global_options->{project})) {
     $self->usage_error('Unknown project');

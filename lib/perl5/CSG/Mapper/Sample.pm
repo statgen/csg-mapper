@@ -27,7 +27,7 @@ has 'cram' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_cram');
 has 'crai' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_crai');
 
 sub _build_conf {
-  return CSG::Mapper::Config->new();
+  return CSG::Mapper::Config->new(project => 'topmed');
 }
 
 sub _build_prefix {

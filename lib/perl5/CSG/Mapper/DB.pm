@@ -8,7 +8,7 @@ use CSG::Mapper::Config;
 use CSG::Mapper::DB::Schema;
 
 sub new {
-  my $conf = CSG::Mapper::Config->new();
+  my $conf = CSG::Mapper::Config->new(project => 'topmed');
   return __PACKAGE__->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'));
 }
 

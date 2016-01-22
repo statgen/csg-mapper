@@ -12,17 +12,18 @@ sub opt_spec {
 sub validate_args {
   my ($self, $opts, $args) = @_;
 
-  my $config = CSG::Mapper::Config->new();
   my $schema = CSG::Mapper::DB->new();
   my $logger = CSG::Mapper::Logger->new();
 
   $self->{stash}->{schema} = $schema;
-  $self->{stash}->{config} = $config;
   $self->{stash}->{logger} = $logger;
 
   unless ($self->app->global_options->{project}) {
     $self->usage_error('Project is required');
   }
+
+  my $config = CSG::Mapper::Config->new(project => $self->app->global_otions->{project});
+  $self->{stash}->{config} = $config;
 
   unless ($config->has_category($self->app->global_options->{project})) {
     $self->usage_error('Unknown project');

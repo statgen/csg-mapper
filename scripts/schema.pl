@@ -5,7 +5,7 @@ use DBIx::Class::Schema::Loader qw(make_schema_at);
 use CSG::Base;
 use CSG::Mapper::Config;
 
-my $config = CSG::Mapper::Config->new();
+my $config = CSG::Mapper::Config->new(project => 'topmed');
 
 make_schema_at(
   'CSG::Mapper::DB::Schema', {

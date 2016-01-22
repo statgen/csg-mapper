@@ -2,7 +2,6 @@ package CSG::Mapper::Command::stat;
 
 use CSG::Mapper -command;
 use CSG::Base;
-use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
 sub opt_spec {
