@@ -65,4 +65,11 @@ sub test_get : Test(8) {
   dies_ok(sub {$config->get('topmed', 'bar')}, 'die expected for non-existant value');
 }
 
+sub test_overrides : Test(no_plan) {
+  my ($test) = @_;
+  my $config = $test->{config};
+
+  is($config->get('csg', 'align_procs'), 8, 'project specific cores for align step match');
+}
+
 1;
