@@ -24,6 +24,11 @@ subtype 'ValidJobFactory',
   },
   message { 'is not a valid cluster job factory implementation' };
 
+subtype 'Directory',
+  as 'Str',
+  where {-d $_},
+  message { 'directory does not exist' };
+
 no Moose::Util::TypeConstraints;
 
 1;

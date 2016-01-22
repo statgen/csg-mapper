@@ -1,4 +1,3 @@
-# TODO - make a singleton
 package CSG::Mapper::Config;
 
 use Moose;
@@ -7,42 +6,97 @@ use CSG::Base qw(config);
 use CSG::Constants;
 use CSG::Types;
 
-Readonly::Scalar my $DEFAULT_CONFIG => qq($FindBin::Bin/../etc/mapper.ini);
-
-has '_file' => (
-  is      => 'ro',
-  isa     => 'FileOnDisk',
-  default => sub {
-    return $ENV{CSG_MAPPING_CONF} // $DEFAULT_CONFIG;
-  }
+has 'project' => (
+  is       => 'ro',
+  isa      => 'Str',
+  required => 1,
+  trigger  => \&_set_project,
 );
 
-has 'conf' => (is => 'ro', isa => 'Config::Tiny', lazy => 1, builder => '_build_conf');
-has 'dsn'  => (is => 'ro', isa => 'Str',          lazy => 1, builder => '_build_dsn');
+has '_config_dir' => (
+  is      => 'ro',
+  isa     => 'Directory',
+  default => sub { return qq{$FindBin::Bin/../etc}},
+);
 
-sub _build_conf {
-  return Config::Tiny->read(shift->_file);
+has '_global_conf_file' => (
+  is      => 'ro',
+  isa     => 'FileOnDisk',
+  lazy    => 1,
+  builder => '_build_global_conf_file',
+);
+
+has '_project_conf_file' => (
+  is      => 'ro',
+  isa     => 'FileOnDisk',
+  lazy    => 1,
+  builder => '_build_project_conf_file',
+);
+
+has '_global_conf' => (
+  is      => 'ro',
+  isa     => 'Config::Tiny',
+  lazy    => 1,
+  builder => '_build_global_conf',
+);
+
+has '_project_conf' => (
+  is      => 'ro',
+  isa     => 'Config::Tiny',
+  lazy    => 1,
+  builder => '_build_project_conf',
+);
+
+sub _build_global_conf_file {
+  return $ENV{CSG_MAPPING_CONF} // File::Spec->join(shift->_config_dir, 'mapper.ini');
 }
 
-sub _build_dsn {
+sub _build_global_conf {
+  return Config::Tiny->read(shift->_global_conf_file);
+}
+
+sub _build_project_conf_file {
   my ($self) = @_;
-  return sprintf 'dbi:mysql:database=%s;host=%s;port=%d',
-    $self->get('db', 'db'),
-    $self->get('db', 'host'),
-    $self->get('db', 'port');
+  return File::Spec->join($self->_config_dir, $self->project . '.ini');
+}
+
+sub _build_project_conf {
+  return Config::Tiny->read(shift->_project_conf_file);
+}
+
+sub _build_conf {
+  return Config::Tiny->read(shift->_global_conf_file);
+}
+
+sub _set_project {
+  my ($self, $name, $old_name) = @_;
+  croak "no configuraiton for project: $name exists" unless -e $self->_project_conf_file;
+  # TODO - should we cause a reload of _project_conf_file and _project_conf?
 }
 
 sub get {
   my ($self, $category, $name) = @_;
+
   my $section = ($category eq q{global}) ? $UNDERSCORE : $category;
-  my $value   = $self->conf->{$section}->{$name};
-  croak 'Undefined value' unless defined $value;
-  return $value;
+
+  if (exists $self->_project_conf->{$section} and exists $self->_project_conf->{$section}->{$name}) {
+    return $self->_project_conf->{$section}->{$name};
+  }
+
+  if (exists $self->_global_conf->{$section} and exists $self->_global_conf->{$section}->{$name}) {
+    return $self->_global_conf->{$section}->{$name};
+  }
+
+  croak 'Undefined value';
 }
 
 sub has_category {
   my ($self, $category) = @_;
-  return exists $self->conf->{$category};
+  return exists $self->_global_conf->{$category} or exists $self->_project_conf->{$category};
+}
+
+sub dsn {
+  return sprintf 'dbi:mysql:database=%s;host=%s;port=%d', @{shift->_global_conf->{db}}{(qw(db host port))};
 }
 
 no Moose;
