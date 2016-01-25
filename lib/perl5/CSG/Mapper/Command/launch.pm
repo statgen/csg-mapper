@@ -120,7 +120,7 @@ sub execute {
   }
 
   for my $sample (@samples) {
-    last if $opts->{limit} and ++$jobs > $opts->{limit};
+    last if $opts->{limit} and $jobs >= $opts->{limit};
 
     my $result = $sample->results->search({build => $build})->first;
 
@@ -301,6 +301,8 @@ sub execute {
               submitted_at => $schema->now(),
             }
           );
+
+          $jobs++;
         }
       };
     }
