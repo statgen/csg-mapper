@@ -25,10 +25,10 @@ has '_logger' => (
 sub _set_job_id {
   my ($self, $new, $prev) = @_;
 
-  unless ($self->has_job_id) {
+  if ($self->has_job_id) {
     my $conf = CSG::Mapper::Config->new(project => 'topmed');
 
-    $self->logger->add(
+    $self->_logger->add(
       CSG::Mapper::Logger::Dispatch::DBI->new(
         dbh       => DBI->connect($conf->dsn, $conf->get('db', 'user'), $conf->get('db', 'pass'), {mysql_auto_reconnect => 1}),
         table     => 'logs',

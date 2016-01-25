@@ -29,7 +29,6 @@ sub validate_args {
 
   $self->{stash}->{logger} = $logger;
   $self->{stash}->{level}  = $level;
-
 }
 
 sub execute {

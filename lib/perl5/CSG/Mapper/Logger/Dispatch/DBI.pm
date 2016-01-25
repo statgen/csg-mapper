@@ -12,7 +12,7 @@ sub create_statement {
 sub log_message {
   my $self   = shift;
   my %params = @_;
-  return $self->{sth}->execute(@params{qw(job_id level message)});
+  return $self->{sth}->execute(@params{(qw(job_id level message))});
 }
 
 1;
