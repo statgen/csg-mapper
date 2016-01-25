@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=[% job.procs %]
 #SBATCH --mem=[% job.memory %]
 #SBATCH --gres=tmp:sata:200
-#SBATCH --time=10-02:00:00
+#SBATCH --time=[% job.walltime %]
 #SBATCH --workdir=[% job.workdir %]
 #SBATCH --partition=topmed
 #SBATCH --mail-type=FAIL
@@ -17,7 +17,7 @@ NODELIST=$SLURM_JOB_NODELIST
 [% ELSIF settings.cluster == 'flux' -%]
 #PBS -l nodes=1:ppn=[% job.procs %]
 #BPS -l walltime=[% job.walltime %]
-#PBS -l pmem=4gb
+#PBS -l pmem=[% job.memory %]gb
 #PBS -l ddisk=50gb
 #PBS -m a
 #PBS -d [% job.workdir %]

@@ -95,8 +95,18 @@ sub execute {
       ? $config->get($cluster, $step->name . '_procs')
       : $config->get($project, 'procs');
 
-  my $memory   = $opts->{memory}   // $config->get($project, 'memory');
-  my $walltime = $opts->{walltime} // $config->get($project, 'walltime');
+  my $memory = ($opts->{memory})
+    ? $opts->{memory}
+    : ($config->get($cluster, $step->name . '_memory'))
+      ? $config->get($cluster, $step->name . '_memory')
+      : $config->get($project, 'memory');
+
+  my $walltime = ($opts->{walltime})
+    ? $opts->{walltime}
+    : ($config->get($cluster, $step->name . '_walltime'))
+      ? $config->get($cluster, $step->name . '_walltime')
+      : $config->get($project, 'walltime');
+
   my $delay    = $opts->{delay}    // int(rand($MAX_DELAY));
   my $build    = $opts->{build}    // $config->get($project, 'build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
