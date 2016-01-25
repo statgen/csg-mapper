@@ -254,58 +254,57 @@ sub execute {
 
     $logger->debug("wrote batch file to $job_file") if $debug;
 
-    unless ($self->app->global_options->{dry_run}) {
-      my $job = CSG::Mapper::Job->new(cluster => $cluster);
+    $jobs++;
+    next if $self->app->global_options->{dry_run};
 
-      $logger->debug("submitting batch file $job_file") if $debug;
+    my $job = CSG::Mapper::Job->new(cluster => $cluster);
 
-      try {
-        $job->submit($job_file);
-      }
-      catch {
-        if (not ref $_) {
-          $logger->critical('Uncaught exception');
-          $logger->debug($_) if $debug;
+    $logger->debug("submitting batch file $job_file") if $debug;
 
-        } elsif ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
-          $logger->error($_->description);
-
-        } elsif ($_->isa('CSG::Mapper::Exception::Job::BatchFileNotReadable')) {
-          $logger->error($_->description);
-
-        } elsif ($_->isa('CSG::Mapper::Exception::Job::SubmissionFailure')) {
-          $logger->error($_->description);
-
-        } elsif ($_->isa('CSG::Mapper::Exception::Job::ProcessOutput')) {
-          $logger->error($_->description);
-          $logger->debug($_->output) if $debug;
-
-        } else {
-          if ($_->isa('Exception::Class')) {
-            chomp(my $error = $_->error);
-            $logger->critical($error);
-          } else {
-            $logger->critical('something went sideways');
-            print STDERR Dumper $_ if $debug;
-          }
-        }
-      }
-      finally {
-        unless (@_) {
-          $logger->info('submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
-
-          $result->update({state_id => $schema->resultset('State')->find({name => 'submitted'})->id});
-          $job_meta->update(
-            {
-              job_id       => $job->job_id(),
-              submitted_at => $schema->now(),
-            }
-          );
-
-          $jobs++;
-        }
-      };
+    try {
+      $job->submit($job_file);
     }
+    catch {
+      if (not ref $_) {
+        $logger->critical('Uncaught exception');
+        $logger->debug($_) if $debug;
+
+      } elsif ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
+        $logger->error($_->description);
+
+      } elsif ($_->isa('CSG::Mapper::Exception::Job::BatchFileNotReadable')) {
+        $logger->error($_->description);
+
+      } elsif ($_->isa('CSG::Mapper::Exception::Job::SubmissionFailure')) {
+        $logger->error($_->description);
+
+      } elsif ($_->isa('CSG::Mapper::Exception::Job::ProcessOutput')) {
+        $logger->error($_->description);
+        $logger->debug($_->output) if $debug;
+
+      } else {
+        if ($_->isa('Exception::Class')) {
+          chomp(my $error = $_->error);
+          $logger->critical($error);
+        } else {
+          $logger->critical('something went sideways');
+          print STDERR Dumper $_ if $debug;
+        }
+      }
+    }
+    finally {
+      unless (@_) {
+        $logger->info('submitted job (' . $job->job_id . ') for sample ' . $sample_obj->sample_id) if $verbose;
+
+        $result->update({state_id => $schema->resultset('State')->find({name => 'submitted'})->id});
+        $job_meta->update(
+          {
+            job_id       => $job->job_id(),
+            submitted_at => $schema->now(),
+          }
+        );
+      }
+    };
   }
 }
 
