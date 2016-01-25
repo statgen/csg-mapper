@@ -26,17 +26,6 @@ sub startup : Test(startup => 2) {
   $test->{config} = $config;
 }
 
-sub test_has_category : Test(4) {
-  my ($test) = @_;
-  my $config = $test->{config};
-
-  can_ok($config, 'has_category');
-
-  for my $cat ((qw(db pipelines gotcloud))) {
-    ok($config->has_category($cat), "$cat category exists");
-  }
-}
-
 sub test_dsn : Test(1) {
   my ($test) = @_;
   my $config = $test->{config};

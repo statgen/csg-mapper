@@ -90,11 +90,6 @@ sub get {
   croak 'Undefined value';
 }
 
-sub has_category {
-  my ($self, $category) = @_;
-  return exists $self->_global_conf->{$category} or exists $self->_project_conf->{$category};
-}
-
 sub dsn {
   return sprintf 'dbi:mysql:database=%s;host=%s;port=%d', @{shift->_global_conf->{db}}{(qw(db host port))};
 }

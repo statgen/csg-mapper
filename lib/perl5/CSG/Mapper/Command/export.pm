@@ -25,10 +25,6 @@ sub validate_args {
   my $config = CSG::Mapper::Config->new(project => $self->app->global_otions->{project});
   $self->{stash}->{config} = $config;
 
-  unless ($config->has_category($self->app->global_options->{project})) {
-    $self->usage_error('Unknown project');
-  }
-
   unless ($self->can('_export_' . $self->app->global_options->{project})) {
     $self->usage_error('No export method defined for this project');
   }

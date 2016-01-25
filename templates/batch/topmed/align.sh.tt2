@@ -50,25 +50,8 @@ export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
 $MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --step align
 
-$MAPPER_LOG_CMD --message "job env: $(env|tr '\n', ' ')"
-
-if [ -e $OUT_DIR ]; then
-  $MAPPER_LOG_CMD --message 'found existing OUT_DIR deleting'
-  rm -rfv $OUT_DIR
-
-  if [ $? -ne 0 ]; then
-    $MAPPER_LOG_CMD --message 'failed to remove existing OUT_DIR' --level critical
-    $MAPPER_UPDATE_CMD --state failed
-    exit 1
-  fi
-fi
-
-$MAPPER_LOG_CMD --message 'creating OUT_DIR'
-mkdir -p $OUT_DIR
-
-if [ $? -ne 0 ]; then
-  $MAPPER_LOG_CMD --message 'failed to create OUT_DIR and' --level critical
-  $MAPPER_UPDATE_CMD --state failed
+if [ ! -e $OUT_DIR ]; then
+  $MAPPER_LOG_CMD --message 'OUT_DIR is missing' --level critical
   exit 1
 fi
 

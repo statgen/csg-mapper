@@ -30,9 +30,6 @@ sub validate_args {
 
   my $config = CSG::Mapper::Config->new(project => $self->app->global_options->{project});
   $self->{stash}->{config} = $config;
-  unless ($config->has_category($self->app->global_options->{project})) {
-    $self->usage_error('Invalid project specified');
-  }
 
   unless (-e $opts->{filename}) {
     $self->usage_error('Unable to locate import filename on disk');

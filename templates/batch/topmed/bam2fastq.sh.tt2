@@ -48,7 +48,6 @@ export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 $MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --step bam2fastq
 
 $MAPPER_LOG_CMD --message 'starting remapping pipeline'
-$MAPPER_LOG_CMD --message "job env: $(env|tr '\n', ' ')"
 
 if [ -e $TMP_DIR ]; then
   $MAPPER_LOG_CMD --message 'removing existing TMP_DIR'
@@ -96,7 +95,7 @@ $MAPPER_LOG_CMD --message "pipe_rc: $rc"
 if [ "$rc" -eq 0 ]; then
   $MAPPER_LOG_CMD --message "[% settings.pipeline %] completed with exit code $rc"
   $MAPPER_UPDATE_CMD --state completed --exit-code $rc
-  $MAPPER_CMD launch --project [% settings.project %] --cluster [% settings.cluster %] --meta-id $META_ID --step align
+  $MAPPER_CMD launch --verbose --project [% settings.project %] --cluster [% settings.cluster %] --meta-id $META_ID --step align
 else
   $MAPPER_LOG_CMD --message "[% settings.pipeline %] failed with exit code $rc" --level critical
   $MAPPER_UPDATE_CMD --state failed --exit-code $rc

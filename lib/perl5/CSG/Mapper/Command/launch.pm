@@ -46,10 +46,6 @@ sub validate_args {
   my $config = CSG::Mapper::Config->new(project => $self->app->global_options->{project});
   $self->{stash}->{config} = $config;
 
-  unless ($config->has_category($self->app->global_options->{project})) {
-    $self->usage_error('Unknown project');
-  }
-
   unless ($opts->{step}) {
     $self->usage_error('Step is required');
   }

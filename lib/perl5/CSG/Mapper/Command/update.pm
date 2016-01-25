@@ -51,18 +51,18 @@ sub validate_args {
     $self->usage_error('job has already ended');
   }
 
-  unless ($opts->{step}) {
-    $self->usage_error('step is required');
-  }
+  if ($opts->{step}) {
+    my $step = $schema->resultset('Step')->find({name => $opts->{step}});
 
-  my $step = $schema->resultset('Step')->find({name => $opts->{step}});
-  unless ($step) {
-    $self->usage_error('invalid job step');
+    unless ($step) {
+      $self->usage_error('invalid job step');
+    }
+
+    $self->{stash}->{step}   = $step;
   }
 
   $self->{stash}->{schema} = $schema;
   $self->{stash}->{meta}   = $meta;
-  $self->{stash}->{step}   = $step;
 }
 
 sub execute {
