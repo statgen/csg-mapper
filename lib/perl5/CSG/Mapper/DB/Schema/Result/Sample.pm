@@ -96,12 +96,6 @@ __PACKAGE__->table("samples");
   data_type: 'text'
   is_nullable: 0
 
-=head2 exported_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
 =head2 created_at
 
   data_type: 'datetime'
@@ -138,12 +132,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "fullpath",
   { data_type => "text", is_nullable => 0 },
-  "exported_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-  },
   "created_at",
   {
     data_type => "datetime",
@@ -264,6 +252,6 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-19 09:21:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9mcQlm+/maEhtyG67glB2w
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-27 15:27:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vVLMrdJz8CBqfDGjhr+HqA
 1;

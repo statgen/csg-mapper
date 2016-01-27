@@ -40,6 +40,7 @@ __PACKAGE__->table("results");
 =head2 id
 
   data_type: 'integer'
+  is_auto_increment: 1
   is_nullable: 0
 
 =head2 sample_id
@@ -61,11 +62,17 @@ __PACKAGE__->table("results");
   is_nullable: 0
   size: 45
 
+=head2 exported_at
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
 =head2 created_at
 
-  data_type: 'varchar'
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 0
-  size: 45
 
 =head2 modified_at
 
@@ -78,15 +85,25 @@ __PACKAGE__->table("results");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "sample_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "state_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "build",
   { data_type => "varchar", default_value => 38, is_nullable => 0, size => 45 },
+  "exported_at",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
   "created_at",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 0,
+  },
   "modified_at",
   {
     data_type => "timestamp",
@@ -156,8 +173,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-19 09:21:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f3/xHMJ44O4Y2sSiKXlvfQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-27 15:27:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bgMJXY6skvrbz7bheRCarg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
