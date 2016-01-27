@@ -28,6 +28,7 @@ requires 'JSON::MaybeXS';
 requires 'IO::Socket::SSL';
 
 requires 'File::Stat';
+requires 'File::Slurp::Tiny';
 
 requires 'Log::Dispatch';
 requires 'Log::Dispatch::DBI';
