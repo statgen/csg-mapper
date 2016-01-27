@@ -1474,6 +1474,19 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       HTTP::Date 6
       perl 5.006002
+  File-Slurp-Tiny-0.004
+    pathname: L/LE/LEONT/File-Slurp-Tiny-0.004.tar.gz
+    provides:
+      File::Slurp::Tiny 0.004
+    requirements:
+      Carp 0
+      Exporter 5.57
+      ExtUtils::MakeMaker 0
+      File::Spec::Functions 0
+      FileHandle 0
+      perl 5.008001
+      strict 0
+      warnings 0
   File-Stat-0.01
     pathname: M/MA/MAKOTO/File-Stat-0.01.tar.gz
     provides:
@@ -1666,6 +1679,27 @@ DISTRIBUTIONS
     requirements:
       Clone 0
       ExtUtils::MakeMaker 0
+      perl 5.008001
+  IO-All-0.86
+    pathname: I/IN/INGY/IO-All-0.86.tar.gz
+    provides:
+      IO::All 0.86
+      IO::All::Base undef
+      IO::All::DBM undef
+      IO::All::Dir undef
+      IO::All::File undef
+      IO::All::Filesys undef
+      IO::All::Link undef
+      IO::All::MLDBM undef
+      IO::All::Pipe undef
+      IO::All::STDIO undef
+      IO::All::Socket undef
+      IO::All::String undef
+      IO::All::Temp undef
+    requirements:
+      Cwd 0
+      ExtUtils::MakeMaker 0
+      Scalar::Util 0
       perl 5.008001
   IO-HTML-1.001
     pathname: C/CJ/CJM/IO-HTML-1.001.tar.gz
@@ -2751,6 +2785,15 @@ DISTRIBUTIONS
       MIME::Base64 0
       Test::More 0.60_01
       perl 5.005
+  Number-Bytes-Human-0.09
+    pathname: D/DA/DAGOBERT/Number-Bytes-Human-0.09.tar.gz
+    provides:
+      Number::Bytes::Human 0.09
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      POSIX 0
+      Test::More 0
   Package-DeprecationManager-0.14
     pathname: D/DR/DROLSKY/Package-DeprecationManager-0.14.tar.gz
     provides:

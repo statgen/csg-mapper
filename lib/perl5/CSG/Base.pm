@@ -29,6 +29,7 @@ our %IMPORT_BUNDLES = (
   ],
   file => [
     qw(
+      IO::All
       File::Spec
       File::Basename
       File::Stat

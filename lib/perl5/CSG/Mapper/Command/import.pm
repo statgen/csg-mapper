@@ -2,14 +2,17 @@ package CSG::Mapper::Command::import;
 
 use CSG::Mapper -command;
 use CSG::Base qw(parsers file);
-use CSG::Constants qw(:mapping);
+use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
 Readonly::Array my @IMPORT_FIELDS => (qw(center run_dir filename study pi sample_id fullpath));
 
 sub opt_spec {
-  return (['filename|f=s', 'Filename to import'], ['headers', 'Import file contains a header row'],);
+  return (
+    ['filename|f=s', 'Filename to import or - to read from stdin'],
+    ['headers', 'Import file contains a header row'],
+  );
 }
 
 sub validate_args {
@@ -31,22 +34,8 @@ sub validate_args {
   my $config = CSG::Mapper::Config->new(project => $self->app->global_options->{project});
   $self->{stash}->{config} = $config;
 
-  unless (-e $opts->{filename}) {
+  if ($opts->{filename} ne $DASH and not -e $opts->{filename}) {
     $self->usage_error('Unable to locate import filename on disk');
-  } else {
-
-    my $csv;
-    try {
-      $csv = Class::CSV->parse(
-        filename => $opts->{filename},
-        fields   => \@IMPORT_FIELDS,
-      );
-    }
-    catch {
-      $self->usage_error(qq{Unable to parse file $_});
-    };
-
-    $self->{stash}->{csv} = $csv;
   }
 }
 
@@ -55,10 +44,28 @@ sub execute {
 
   my $config  = $self->{stash}->{config};
   my $schema  = CSG::Mapper::DB->new();
-  my @lines   = @{$self->{stash}->{csv}->lines()};
   my $project = $self->app->global_options->{project};
   my $cluster = $self->app->global_options->{cluster};
 
+  my %parse_params = (
+    filename => $opts->{filename},
+    fields   => \@IMPORT_FIELDS,
+  );
+
+  if ($opts->{filename} eq $DASH) {
+    delete $parse_params{filename};
+    $parse_params{filehandle} = io->stdin->tie;
+  }
+
+  my $csv;
+  try {
+    $csv = Class::CSV->parse(%parse_params);
+  }
+  catch {
+    croak "failed to parse csv: $_";
+  };
+
+  my @lines = @{$csv->lines()};
   shift @lines if $opts->{headers};
 
   for my $line (@lines) {
