@@ -29,7 +29,7 @@ CHRS = chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 chr13 chr1
 
 ONE_BWA = 1
 # Set number of bwa threads per bwa run.
-BWA_THREADS = -t 6
+BWA_THREADS = -t 6 -Y
 
 # Skip verifyBamID & run 2 step dedup/recab
 PER_MERGE_STEPS = qplot index recab

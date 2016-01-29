@@ -35,7 +35,7 @@ our %IMPORT_BUNDLES = (
       File::Stat
       Path::Class
       ),
-    'File::Path'        => [qw(make_path)],
+    'File::Path'        => [qw(make_path remove_tree)],
     'File::Slurp::Tiny' => [qw(read_file read_lines)],
   ],
   formats => [

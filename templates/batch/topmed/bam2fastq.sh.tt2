@@ -105,7 +105,9 @@ else
     exit $rc
   fi
 
+  $MAPPER_LOG_CMD --message 'moving TMP_DIR to RUN_DIR'
   mv $TMP_DIR $RUN_DIR
+
   if [ $? -ne 0 ]; then
     $MAPPER_LOG_CMD --mesage 'failed to move TMP_DIR to RUN_DIR' --level critical
     exit $rc
