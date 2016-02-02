@@ -178,4 +178,17 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+#
+sub status_line {
+  my ($self) = @_;
+
+  return sprintf
+    q{ID: %-8s center: %-10s study: %-10s PI: %-15s Status: %-10s },
+    $self->sample->sample_id,
+    $self->sample->center->name,
+    $self->sample->study->name,
+    $self->sample->pi->name,
+    $self->state->name;
+}
+
 1;
