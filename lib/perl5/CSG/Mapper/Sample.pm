@@ -81,7 +81,7 @@ sub _build_result_path {
 
 sub _build_cram {
   my ($self) = @_;
-  return File::Spec->join($self->result_path, 'bams', $self->sample_id, '.recal.cram');
+  return File::Spec->join($self->result_path, 'bams', $self->sample_id . '.recal.cram');
 }
 
 sub _build_crai {
