@@ -17,7 +17,7 @@
 JOB_ID=$SLURM_JOB_ID
 NODELIST=$SLURM_JOB_NODELIST
 [% ELSIF settings.cluster == 'flux' -%]
-#PBS -l nodes=1:ppn=[% job.procs %]:[% job.nodelist %]
+#PBS -l nodes=[% job.nodelist %]:ppn=[% job.procs %]
 #BPS -l walltime=[% job.walltime %]
 #PBS -l pmem=[% job.memory %]gb
 #PBS -l ddisk=50gb
