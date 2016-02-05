@@ -107,7 +107,6 @@ sub execute {
       ? $config->get($cluster, $step->name . '_walltime')
       : $config->get($project, 'walltime');
 
-  my $delay    = $opts->{delay}    // int(rand($MAX_DELAY));
   my $build    = $opts->{build}    // $config->get($project, 'build');
   my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
 
@@ -138,6 +137,7 @@ sub execute {
       next if $result->build ne $build;
     }
 
+    my $delay    = $opts->{delay} // int(rand($MAX_DELAY));
     my $job_meta = $result->add_to_jobs(
       {
         cluster  => $cluster,
