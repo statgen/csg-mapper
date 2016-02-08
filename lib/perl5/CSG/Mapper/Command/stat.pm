@@ -9,6 +9,7 @@ sub opt_spec {
     ['job-id=s',  'job to provide stats for'],
     ['time-left', 'calculate time remaining in hours for a given jobid'],
     ['totals',    'various counts'],
+    ['build|b=s', 'reference build'],
   );
 }
 
@@ -18,6 +19,14 @@ sub validate_args {
   if ($opts->{time_left} and not $opts->{job_id} and not $self->app->global_options->{cluster}) {
     $self->usage_error('cluster and job-id are required for the time-left stat');
   }
+
+  if ($opts->{totals} and not $opts->{build}) {
+    $self->usage_error('build is required when viewing totals');
+  }
+
+  unless ($opts->{build} =~ /37|38/) {
+    $self->usage_error('invalid reference build');
+  }
 }
 
 sub execute {
@@ -25,6 +34,10 @@ sub execute {
 
   if ($opts->{time_left}) {
     $self->_time_left($opts->{job_id});
+  }
+
+  if ($opts->{totals}) {
+    $self->_totals();
   }
 }
 
@@ -37,6 +50,19 @@ sub _time_left {
   );
 
   say $job->time_remaining();
+}
+
+sub _totals {
+  my ($self) = @_;
+
+  my $schema = CSG::Mapper::DB->new();
+
+  # TODO - display stats per project per build
+  #   * total samples
+  #   * total completed samples (per cluster)
+  #   * total failed samples
+  #   * total running samples
+  #   * 
 }
 
 1;
