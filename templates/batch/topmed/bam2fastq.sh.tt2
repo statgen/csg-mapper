@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=[% job.procs %]
 #SBATCH --mem=[% job.memory %]
-#SBATCH --gres=tmp:sata:200
+#SBATCH --gres=tmp:200
 #SBATCH --time=[% job.walltime %]
 #SBATCH --workdir=[% job.workdir %]
 #SBATCH --partition=topmed
