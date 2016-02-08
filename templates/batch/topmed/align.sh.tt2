@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=[% job.procs %]
 #SBATCH --mem=[% job.memory %]
-#SBATCH --gres=tmp:sata:200
+#SBATCH --gres=tmp:200
 #SBATCH --time=[% job.walltime %]
 #SBATCH --workdir=[% job.workdir %]
 #SBATCH --partition=topmed
@@ -18,7 +18,7 @@ JOB_ID=$SLURM_JOB_ID
 NODELIST=$SLURM_JOB_NODELIST
 [% ELSIF settings.cluster == 'flux' -%]
 #PBS -l nodes=[% job.nodelist %]:ppn=[% job.procs %]
-#BPS -l walltime=[% job.walltime %]
+#PBS -l walltime=[% job.walltime %]
 #PBS -l pmem=[% job.memory %]gb
 #PBS -m a
 #PBS -d [% job.workdir %]
