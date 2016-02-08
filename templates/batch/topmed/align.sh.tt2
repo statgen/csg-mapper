@@ -17,7 +17,7 @@
 JOB_ID=$SLURM_JOB_ID
 NODELIST=$SLURM_JOB_NODELIST
 [% ELSIF settings.cluster == 'flux' -%]
-#PBS -l nodes=[% job.nodelist %]:ppn=[% job.procs %]
+#PBS -l nodes=1:ppn=[% job.procs %]
 #PBS -l walltime=[% job.walltime %]
 #PBS -l pmem=[% job.memory %]gb
 #PBS -m a
@@ -41,7 +41,7 @@ MAPPER_LOG_CMD="$MAPPER_CMD log --meta-id $META_ID"
 MAPPER_UPDATE_CMD="$MAPPER_CMD update --meta-id $META_ID"
 
 OUT_DIR=[% settings.out_dir %]
-TMP_DIR=[% settings.tmp_dir %]/[% sample.sample_id %]
+TMP_DIR=[% settings.tmp_dir %]
 
 export PERL_CARTON_PATH=[% settings.project_dir %]/local
 export PERL5LIB=${PERL_CARTON_PATH}/lib/perl5:[% settings.project_dir %]/lib/perl5:${PERL5LIB}

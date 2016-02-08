@@ -38,7 +38,7 @@ MAPPER_CMD=[% settings.mapper_cmd %]
 MAPPER_LOG_CMD="$MAPPER_CMD log --meta-id $META_ID"
 MAPPER_UPDATE_CMD="$MAPPER_CMD update --meta-id $META_ID"
 
-TMP_DIR=[% settings.tmp_dir %]/[% sample.sample_id %]
+TMP_DIR=[% settings.tmp_dir %]
 RUN_DIR=[% settings.run_dir %]
 
 export PERL_CARTON_PATH=[% settings.project_dir %]/local

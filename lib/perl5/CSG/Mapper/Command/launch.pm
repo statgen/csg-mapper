@@ -18,7 +18,6 @@ sub opt_spec {
     ['walltime|w=i', 'Amount of wallclock time for this job'],
     ['delay=i',      'Amount of time to delay exection in seconds'],
     ['build|b=i',    'Reference build to use (ie; 37 or 38)'],
-    ['tmp-dir|t=s',  'Local temporary disk locaiton (defaults to /tmp)'],
     ['step=s',       'Job step to launch [bam2fastq|align|all]'],
     ['meta-id=i',    'Job meta record for parent job'],
   );
@@ -107,8 +106,7 @@ sub execute {
       ? $config->get($cluster, $step->name . '_walltime')
       : $config->get($project, 'walltime');
 
-  my $build    = $opts->{build}    // $config->get($project, 'build');
-  my $tmp_dir  = $opts->{tmp_dir}  // q{/tmp};
+  my $build = $opts->{build}    // $config->get($project, 'build');
 
   my @samples      = ();
   my $dep_job_meta = $self->{stash}->{meta};
@@ -122,6 +120,7 @@ sub execute {
     last if $opts->{limit} and $jobs >= $opts->{limit};
 
     my $result = $sample->results->search({build => $build})->first;
+    my $tmp_dir  =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $sample->sample_id);
 
     unless ($dep_job_meta) {
       unless ($result) {
@@ -226,7 +225,7 @@ sub execute {
           nodelist   => ($dep_job_meta) ? $dep_job_meta->node   : undef,
         },
         settings => {
-          tmp_dir         => File::Spec->join($tmp_dir,                 $project),
+          tmp_dir         => $tmp_dir,
           job_log         => File::Spec->join($sample_obj->result_path, 'job-' . $step->name . '.yml'),
           pipeline        => $config->get('pipelines',                  $sample_obj->center),
           max_failed_runs => $config->get($project,                     'max_failed_runs'),
