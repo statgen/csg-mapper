@@ -119,8 +119,12 @@ sub execute {
   for my $sample (@samples) {
     last if $opts->{limit} and $jobs >= $opts->{limit};
 
-    my $result = $sample->results->search({build => $build})->first;
-    my $tmp_dir  =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $sample->sample_id);
+    my $result  = $sample->results->search({build => $build})->first;
+    my $tmp_dir = File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $sample->sample_id);
+
+    if ($opts->{step} eq 'all') {
+      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $opts->{step});
+    }
 
     unless ($dep_job_meta) {
       unless ($result) {
