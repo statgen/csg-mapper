@@ -87,7 +87,7 @@ sub get {
     return $self->_global_conf->{$section}->{$name};
   }
 
-  croak 'Undefined value';
+  return;
 }
 
 sub dsn {
