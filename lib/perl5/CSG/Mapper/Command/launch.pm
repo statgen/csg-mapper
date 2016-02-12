@@ -106,7 +106,8 @@ sub execute {
       ? $config->get($cluster, $step->name . '_walltime')
       : $config->get($project, 'walltime');
 
-  my $build = $opts->{build}    // $config->get($project, 'build');
+  my $build     = $opts->{build}    // $config->get($project, 'build');
+  my $build_str = 'hg' . $build;
 
   my @samples      = ();
   my $dep_job_meta = $self->{stash}->{meta};
@@ -120,10 +121,10 @@ sub execute {
     last if $opts->{limit} and $jobs >= $opts->{limit};
 
     my $result  = $sample->results->search({build => $build})->first;
-    my $tmp_dir = File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $sample->sample_id);
+    my $tmp_dir = File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $sample->sample_id);
 
     if ($opts->{step} eq 'all') {
-      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $opts->{step});
+      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $opts->{step});
     }
 
     unless ($dep_job_meta) {
@@ -186,14 +187,14 @@ sub execute {
       $logger->debug('created log_dir') if $debug;
     }
 
-    my $run_dir = File::Spec->join($basedir, $config->get($project, 'run_dir'));
+    my $run_dir = File::Spec->join($basedir, $config->get($project, 'run_dir'), $build_str);
     $logger->debug("run_dir: $run_dir") if $debug;
     unless (-e $run_dir) {
       make_path($run_dir);
       $logger->debug('created run_dir') if $debug;
     }
 
-    my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf') . qq{.hg$build});
+    my $gotcloud_conf = File::Spec->join($project_dir, $config->get($cluster, 'gotcloud_conf') . $PERIOD . $build_str);
     $logger->debug("gotcloud conf: $gotcloud_conf") if $debug;
     unless (-e $gotcloud_conf) {
       croak qq{Unable to locate GOTCLOUD_CONF [$gotcloud_conf]};
@@ -211,7 +212,7 @@ sub execute {
       croak qq{GOTCLOUD_REF_DIR [$gotcloud_ref] does not exist!};
     }
 
-    my $job_file = File::Spec->join($run_dir, join($DASH, ($sample_obj->sample_id, $step->name, $cluster . '.sh')));
+    my $job_file = File::Spec->join($run_dir, join($DASH, ($sample_obj->sample_id, $step->name, $build_str, $cluster . '.sh')));
     my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/batch/$project));
 
     $tt->process(
@@ -222,7 +223,7 @@ sub execute {
           walltime   => $walltime,
           build      => $build,
           email      => $config->get($project, 'email'),
-          job_name   => join($DASH, ($project, $step->name, $sample_obj->sample_id)),
+          job_name   => join($DASH, ($project, $step->name, $build_str, $sample_obj->sample_id)),
           account    => $config->get($cluster, 'account'),
           workdir    => $log_dir,
           job_dep_id => ($dep_job_meta) ? $dep_job_meta->job_id : undef,
