@@ -114,7 +114,7 @@ sub execute {
   if ($dep_job_meta) {
     push @samples, $dep_job_meta->result->sample;
   } else {
-    @samples = $schema->resultset('Sample')->all();
+    @samples = $schema->resultset('Sample')->search({},{order_by => 'RAND()'});
   }
 
   for my $sample (@samples) {
