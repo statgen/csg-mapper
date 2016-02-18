@@ -4,7 +4,7 @@ AS = NCBI38
 
 # REF_DIR = /data/local/ref/gotcloud.ref/hg38/
 REF = $(REF_DIR)/hs38DH.fa
-DBSNP_VCF = $(REF_DIR)/dbsnp_142.b38.vcf.gz
+DBSNP_VCF = $(REF_DIR)/dbsnp_146.b38.vcf.gz
 HM3_VCF = $(REF_DIR)/hapmap_3.3.b38.sites.vcf.gz
 OMNI_VCF = $(REF_DIR)/1000G_omni2.5.b38.sites.PASS.vcf.gz
 INDEL_PREFIX = $(REF_DIR)/1kg.pilot_release.merged.indels.sites.hg38
