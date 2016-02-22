@@ -3,7 +3,7 @@ package CSG::Mapper::Sample;
 
 use CSG::Base qw(file);
 use CSG::Mapper::Config;
-use CSG::Mapper::Exception;
+use CSG::Mapper::Exceptions;
 
 use Moose;
 
@@ -82,7 +82,7 @@ sub _build_incoming_path {
   return $bam  if -e $bam;
   return $cram if -e $cram;
 
-  CSG::Mapper::Exception::Sample::NotFound->throw(bam_path => $bam, cram_path => $cram);
+  CSG::Mapper::Exceptions::Sample::NotFound->throw(bam_path => $bam, cram_path => $cram);
 }
 
 sub _build_result_path {
