@@ -39,6 +39,7 @@ MAPPER_CMD=[% settings.mapper_cmd %]
 MAPPER_LOG_CMD="$MAPPER_CMD log --meta-id $META_ID"
 MAPPER_UPDATE_CMD="$MAPPER_CMD update --meta-id $META_ID"
 
+OUT_DIR=[% settings.out_dir %]
 TMP_DIR=[% settings.tmp_dir %]/$JOB_ID
 RUN_DIR=[% settings.run_dir %]
 
@@ -48,6 +49,11 @@ export PATH=[% settings.project_dir %]/bin:${PERL_CARTON_PATH}/bin:${PATH}
 
 $MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --step all
 $MAPPER_LOG_CMD --message 'starting remapping pipeline'
+
+if [ ! -e $OUT_DIR ]; then
+  $MAPPER_LOG_CMD --message 'OUT_DIR is missing' --level critical
+  exit 1
+fi
 
 [% IF settings.cluster == 'csg' -%]
 if [ -d $TMP_DIR ]; then
