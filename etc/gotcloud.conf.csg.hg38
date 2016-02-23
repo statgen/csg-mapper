@@ -4,6 +4,7 @@ AS = NCBI38
 
 # REF_DIR = /data/local/ref/gotcloud.ref/hg38/
 REF = $(REF_DIR)/hs38DH.fa
+REF_DIR_B37 = $(REF_DIR)/../hg37
 DBSNP_VCF = $(REF_DIR)/dbsnp_146.b38.vcf.gz
 HM3_VCF = $(REF_DIR)/hapmap_3.3.b38.sites.vcf.gz
 OMNI_VCF = $(REF_DIR)/1000G_omni2.5.b38.sites.PASS.vcf.gz
@@ -47,7 +48,7 @@ index_EXT = $(recab_EXT).crai
 qplot_IN = -.ubam
 GEN_CRAM = | $(SAMTOOLS_EXE) view -C -T $(REF) - > $(basename $@)
 VIEW_CRAM = $(SAMTOOLS_EXE) view -uh -T $(REF) $(basename $<) |
-CRAM_VIEW = REF_PATH=$(REF_DIR)/md5/%2s/%2s/%s $(SAMTOOLS_EXE) view -uh
+CRAM_VIEW = REF_PATH=$(REF_DIR_B37)/md5/%2s/%2s/%s $(SAMTOOLS_EXE) view -uh
 
 KEEP_TMP = 1
 KEEP_LOG = 1
