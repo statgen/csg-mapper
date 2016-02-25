@@ -13,7 +13,11 @@ use Exception::Class (
   __PACKAGE__ . '::Job::ProcessOutput' => {
     description => 'Failed to parse the job submission output',
     fields      => [qw(output)],
-  }
+  },
+  __PACKAGE__ . '::Sample::NotFound' => {
+    description => 'Sample not found on disk',
+    fields      => [qw(bam_path cram_path)],
+  },
 );
 
 1;

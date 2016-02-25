@@ -8,6 +8,9 @@ use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
 sub opt_spec {
+  return (
+    ['build=s', 'Reference build to run jobs against']
+  );
 }
 
 sub validate_args {
@@ -23,6 +26,14 @@ sub validate_args {
 
   unless ($self->app->global_options->{project}) {
     $self->usage_error('Project is required');
+  }
+
+  unless ($opts->{build}) {
+    $self->usage_error('Build is required');
+  }
+
+  unless ($opts->{build} =~ /37|38/) {
+    $self->usage_error('Invalid build specified');
   }
 
   my $config = CSG::Mapper::Config->new(project => $self->app->global_options->{project});
@@ -41,7 +52,7 @@ sub execute {
   my $verbose = $self->app->global_options->{verbose};
 
   my $prefix      = $config->get($cluster, 'prefix');
-  my $project_dir = qq{$FindBin::Bin/../};
+  my $project_dir = qq{$FindBin::Bin/..};
   my $control_dir = File::Spec->join($project_dir, 'control');
   my $workdir     = $config->get($project, 'workdir');
 
@@ -66,17 +77,18 @@ sub execute {
     $logger->debug('created run_dir') if $debug;
   }
 
-  my $job_file = File::Spec->join($run_dir, qq{monitor.$cluster.sh});
+  my $job_file = File::Spec->join($run_dir, join($DASH, ('monitor', $cluster, $project, 'hg' . $opts->{build} . '.sh')));
   my $tt = Template->new(INCLUDE_PATH => qq($project_dir/templates/monitor));
 
   $tt->process(
-    qq{$cluster.sh.tt2}, {
+    'all.sh.tt2', {
       settings => {
         cluster     => $cluster,
         project     => $project,
         project_dir => $project_dir,
         control_dir => $control_dir,
         mapper_cmd  => $PROGRAM_NAME,
+        build       => $opts->{build},
       },
       job => {
         email   => $config->get($project, 'email'),

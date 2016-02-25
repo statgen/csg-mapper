@@ -3,6 +3,7 @@ package CSG::Mapper::Sample;
 
 use CSG::Base qw(file);
 use CSG::Mapper::Config;
+use CSG::Mapper::Exceptions;
 
 use Moose;
 
@@ -66,9 +67,22 @@ sub _build_sample_id {
 sub _build_incoming_path {
   my ($self) = @_;
 
-  # /<prefix>/<host>/<project_incoming_dir>/<center>/<run_dir>/<filename>
   my $incoming_dir = $self->_conf->get($self->project, 'incoming_dir');
-  return File::Spec->join($self->prefix, $self->host, $incoming_dir, $self->center, $self->run_dir, $self->filename);
+  my $backup_dir   = $self->_conf->get($self->project, 'backup_dir');
+  my $base_dir = File::Spec->join($self->prefix, $self->host);
+
+  # Original BAM path:
+  # /<prefix>/<host>/<project_incoming_dir>/<center>/<run_dir>/<filename>
+  my $bam = File::Spec->join($base_dir, $incoming_dir, $self->center, $self->run_dir, $self->filename);
+
+  # Backed up/squeezed path:
+  # /<prefix>/<host>/<project_backup_dir>/<project_incoming_dir>/<center>/<run_dir>/<sample_id>.src.cram
+  my $cram = File::Spec->join($base_dir, $backup_dir, $incoming_dir, $self->center, $self->run_dir, $self->sample_id . '.src.cram');
+
+  return $bam  if -e $bam;
+  return $cram if -e $cram;
+
+  CSG::Mapper::Exceptions::Sample::NotFound->throw(bam_path => $bam, cram_path => $cram);
 }
 
 sub _build_result_path {

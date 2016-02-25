@@ -6,7 +6,7 @@ use CSG::Constants qw(:basic :mapping);
 use CSG::Mapper::Config;
 use CSG::Mapper::DB;
 
-Readonly::Array my @IMPORT_FIELDS => (qw(center run_dir filename study pi sample_id fullpath));
+Readonly::Array my @IMPORT_FIELDS => (qw(center run_dir filename study pi sample_id state_b37 state_b38 fullpath));
 
 sub opt_spec {
   return (

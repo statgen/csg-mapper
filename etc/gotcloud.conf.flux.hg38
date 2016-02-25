@@ -4,7 +4,8 @@ AS = NCBI38
 
 # REF_DIR = /data/local/ref/gotcloud.ref/hg38/
 REF = $(REF_DIR)/hs38DH.fa
-DBSNP_VCF = $(REF_DIR)/dbsnp_142.b38.vcf.gz
+REF_DIR_B37 = $(REF_DIR)/../hg37
+DBSNP_VCF = $(REF_DIR)/dbsnp_146.b38.vcf.gz
 HM3_VCF = $(REF_DIR)/hapmap_3.3.b38.sites.vcf.gz
 OMNI_VCF = $(REF_DIR)/1000G_omni2.5.b38.sites.PASS.vcf.gz
 INDEL_PREFIX = $(REF_DIR)/1kg.pilot_release.merged.indels.sites.hg38
@@ -47,7 +48,7 @@ index_EXT = $(recab_EXT).crai
 qplot_IN = -.ubam
 GEN_CRAM = | $(SAMTOOLS_EXE) view -C -T $(REF) - > $(basename $@)
 VIEW_CRAM = $(SAMTOOLS_EXE) view -uh -T $(REF) $(basename $<) |
-CRAM_VIEW = REF_PATH=$(REF_DIR)/md5/%2s/%2s/%s $(SAMTOOLS_EXE) view -uh
+CRAM_VIEW = REF_PATH=$(REF_DIR_B37)/md5/%2s/%2s/%s $(SAMTOOLS_EXE) view -uh
 
 KEEP_TMP = 1
 KEEP_LOG = 1
@@ -59,11 +60,20 @@ BWA_RM_FASTQ = 1
 
 recab_USER_PARAMS = --maxBaseQual 44
 
+#-----------------------------------
+# Bam2Fastq pipeline
+#-----------------------------------
 [cleanUpBam2fastq]
 BAM_LIST = $(OUT_DIR)/bam.list
 
-[cleanUpBam]
-CMD = $(CRAM_VIEW) ?(BAM) |  $(BAM_EXE) squeeze --in -.ubam --keepDups --rmTags AS:i,BD:Z,BI:Z,XS:i,MC:Z,MD:Z,NM:i,MQ:i --out - | $(SAMTOOLS_EXE) view -S -b -F 0x800 - | $(SAMTOOLS_SORT_EXE) sort -n -o - $(DIR)/?(BAM).temp | $(SAMTOOLS_EXE) fixmate - $(OUTPUT) 2> $(OUTPUT)2fastq.log
-
 [bam2fastqStep]
-CMD = $(CRAM_VIEW) ?(BAM) | $(PIPE) $(BAM_EXE) bam2fastq --in -.ubam --outBase $(OUTPUT) --splitRG --gzip 2> $(OUTPUT)2fastq.log
+CMD = $(PIPE)$(BAM_EXE) bam2fastq --in $(BAM2FASTQ_INPUT) --outBase $(OUTPUT) --splitRG --gzip 2> $(OUTPUT)2fastq.log
+BAM2FASTQ_INPUT = -.ubam
+PIPE = $(CRAM_VIEW) ?(BAM) |
+
+[binBam2fastqStep] : bam2fastqStep
+PIPE = $(CRAM_VIEW) ?(BAM) | $(BAM_EXE) squeeze --binMid --binQualS 2,3,10,20,25,30,35,40,50 --keepDups --in -.ubam --out -.ubam | 
+
+[cleanUpBam]
+CMD = ($(CRAM_VIEW) ?(BAM) | $(BAM_EXE) squeeze --in -.ubam --keepDups --rmTags AS:i,BD:Z,BI:Z,XS:i,MC:Z,MD:Z,NM:i,MQ:i --out - | $(SAMTOOLS_EXE) view -S -b -F 0x800 - | $(SAMTOOLS_SORT_EXE) sort -n -o - $(DIR)/?(BAM).temp | $(SAMTOOLS_EXE) fixmate - $(OUTPUT)) 2> $(OUTPUT)2fastq.log
+

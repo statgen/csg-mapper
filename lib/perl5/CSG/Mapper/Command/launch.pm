@@ -114,7 +114,7 @@ sub execute {
   if ($dep_job_meta) {
     push @samples, $dep_job_meta->result->sample;
   } else {
-    @samples = $schema->resultset('Sample')->all();
+    @samples = $schema->resultset('Sample')->search({},{order_by => 'RAND()'});
   }
 
   for my $sample (@samples) {
@@ -124,7 +124,7 @@ sub execute {
     my $tmp_dir = File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $sample->sample_id);
 
     if ($opts->{step} eq 'all') {
-      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $opts->{step});
+      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str);
     }
 
     unless ($dep_job_meta) {
