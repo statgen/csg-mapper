@@ -39,6 +39,7 @@ MAPPER_LOG_CMD="$MAPPER_CMD log --meta-id $META_ID"
 MAPPER_UPDATE_CMD="$MAPPER_CMD update --meta-id $META_ID"
 
 TMP_DIR=[% settings.tmp_dir %]/$JOB_ID
+OUT_DIR=[% settings.out_dir %]
 RUN_DIR=[% settings.run_dir %]
 
 export PERL_CARTON_PATH=[% settings.project_dir %]/local
@@ -49,22 +50,22 @@ $MAPPER_UPDATE_CMD --start --job-id $JOB_ID --node $NODELIST --step all
 $MAPPER_LOG_CMD --message 'starting remapping pipeline'
 
 [% IF settings.cluster == 'csg' -%]
-if [ -d $TMP_DIR ]; then
-  for id in $(ls -1 $TMP_DIR); do
+if [ -d [% settings.tmp_dir %] ]; then
+  for id in $(ls -1 [% settings.tmp_dir %]); do
     job_state="$(/usr/cluster/bin/sacct -j $id -X -n -o state%7)"
     if [ "$job_state" != "RUNNING " ]; then # XXX - left trailing space on purpose
       $MAPPER_LOG_CMD --message "removing stale job tmp directory for job id: $id"
-      rm -rf $TMP_DIR/$id
+      rm -rf [% settings.tmp_dir %]/$id
     fi
   done
 fi
 [% ELSIF settings.cluster == 'flux' -%]
-if [ -d $TMP_DIR ]; then
-  for id in $(ls -1 $TMP_DIR); do
+if [ -d [% settings.tmp_dir %] ]; then
+  for id in $(ls -1 [% settings.tmp_dir %]); do
     qstat -f -e $id > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       $MAPPER_LOG_CMD --message "removing stale job tmp directory for job id: $id"
-      rm -rf $TMP_DIR/$id
+      rm -rf [% settings.tmp_dir %]/$id
     fi
   done
 fi
@@ -146,6 +147,9 @@ if [ "$rc" -eq 0 ]; then
 else
   if [ ! -e $RUN_DIR ]; then
     $MAPPER_LOG_CMD --message 'RUN_DIR does not exist' --level critical
+    $MAPPER_LOG_CMD --message "purging $TMP_DIR on $NODELIST"
+    rm -rf $TMP_DIR
+
     exit $rc
   fi
 
