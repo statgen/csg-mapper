@@ -114,13 +114,13 @@ sub execute {
       } elsif ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
         $logger->error($_->description);
 
-      } elsif ($_->isa('CSG::Mapper::Exception::Job::BatchFileNotReadable')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::BatchFileNotReadable')) {
         $logger->error($_->description);
 
-      } elsif ($_->isa('CSG::Mapper::Exception::Job::SubmissionFailure')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::SubmissionFailure')) {
         $logger->error($_->description);
 
-      } elsif ($_->isa('CSG::Mapper::Exception::Job::ProcessOutput')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::ProcessOutput')) {
         $logger->error($_->description);
         $logger->debug($_->output) if $debug;
 

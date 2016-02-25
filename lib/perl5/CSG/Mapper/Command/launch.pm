@@ -88,6 +88,7 @@ sub execute {
   my $prefix      = $config->get($cluster, 'prefix');
   my $workdir     = $config->get($project, 'workdir');
 
+  ## no tidy
   my $procs = ($opts->{procs})
     ? $opts->{procs}
     : ($config->get($cluster, $step->name . '_procs'))
@@ -105,6 +106,7 @@ sub execute {
     : ($config->get($cluster, $step->name . '_walltime'))
       ? $config->get($cluster, $step->name . '_walltime')
       : $config->get($project, 'walltime');
+  ## use tidy
 
   my $build     = $opts->{build}    // $config->get($project, 'build');
   my $build_str = 'hg' . $build;
@@ -119,6 +121,35 @@ sub execute {
 
   for my $sample (@samples) {
     last if $opts->{limit} and $jobs >= $opts->{limit};
+
+    my $logger     = CSG::Mapper::Logger->new();
+    my $sample_obj = CSG::Mapper::Sample->new(
+      cluster => $cluster,
+      record  => $sample,
+      build   => $build
+    );
+
+    try {
+      $sample_obj->incoming_path;
+    }
+    catch {
+      if (not ref $_) {
+        $logger->critical('Uncaught exception');
+        $logger->debug($_) if $debug;
+
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Sample::NotFound')) {
+        $logger->error($_->description);
+        $logger->debug('bam_path: ' . $_->bam_path) if $debug;
+        $logger->debug('cram_path: ' . $_->cram_path) if $debug;
+      }
+    }
+    finally {
+      unless (@_) {
+        $logger->debug('incoming_path: ' . $sample_obj->incoming_path) if $debug;
+      }
+    };
+
+    next unless $sample_obj->has_incoming_path;
 
     my $result  = $sample->results->search({build => $build})->first;
     my $tmp_dir = File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $sample->sample_id);
@@ -153,8 +184,7 @@ sub execute {
       }
     );
 
-    my $sample_obj = CSG::Mapper::Sample->new(cluster => $cluster, record => $sample, build => $build);
-    my $logger = CSG::Mapper::Logger->new(job_id => $job_meta->id);
+    $logger->job_id($job_meta->id);
 
     unless (-e $sample_obj->result_path) {
       $logger->debug('creating out_dir');
@@ -253,8 +283,7 @@ sub execute {
         sample => $sample_obj,
       },
       $job_file
-      )
-      or croak $Template::ERROR;
+      ) or die $tt->error();
 
     $logger->debug("wrote batch file to $job_file") if $debug;
 
@@ -273,16 +302,16 @@ sub execute {
         $logger->critical('Uncaught exception');
         $logger->debug($_) if $debug;
 
-      } elsif ($_->isa('CSG::Mapper::Execption::Job::BatchFileNotFound')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::BatchFileNotFound')) {
         $logger->error($_->description);
 
-      } elsif ($_->isa('CSG::Mapper::Exception::Job::BatchFileNotReadable')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::BatchFileNotReadable')) {
         $logger->error($_->description);
 
-      } elsif ($_->isa('CSG::Mapper::Exception::Job::SubmissionFailure')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::SubmissionFailure')) {
         $logger->error($_->description);
 
-      } elsif ($_->isa('CSG::Mapper::Exception::Job::ProcessOutput')) {
+      } elsif ($_->isa('CSG::Mapper::Exceptions::Job::ProcessOutput')) {
         $logger->error($_->description);
         $logger->debug($_->output) if $debug;
 

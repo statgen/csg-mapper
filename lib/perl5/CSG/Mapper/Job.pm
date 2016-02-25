@@ -47,8 +47,8 @@ sub elapsed_seconds {
 sub submit {
   my ($self, $file) = @_;
 
-  CSG::Mapper::Exception::Job::BatchFileNotFound->throw() unless -e $file;
-  CSG::Mapper::Exception::Job::BatchFileNotReadable->throw() unless -r $file;
+  CSG::Mapper::Exceptions::Job::BatchFileNotFound->throw() unless -e $file;
+  CSG::Mapper::Exceptions::Job::BatchFileNotReadable->throw() unless -r $file;
 
   my $logger = CSG::Mapper::Logger->new();
 
@@ -58,14 +58,14 @@ sub submit {
     if ($output =~ /$regexp/) {
       $self->job_id($+{jobid});
     } else {
-      CSG::Mapper::Exception::Job::ProcessOutput->throw(output => $output);
+      CSG::Mapper::Exceptions::Job::ProcessOutput->throw(output => $output);
     }
   } catch {
     die $_ unless blessed $_ and $_->can('rethrow');
 
     $_->rethrow if $_->can('rethrow');
 
-    CSG::Mapper::Exception::Job::SubmissionFailure->throw(error => $_);
+    CSG::Mapper::Exceptions::Job::SubmissionFailure->throw(error => $_);
   };
 
   return;

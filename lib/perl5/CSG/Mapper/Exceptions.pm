@@ -1,4 +1,4 @@
-package CSG::Mapper::Exception;
+package CSG::Mapper::Exceptions;
 
 use Exception::Class (
   __PACKAGE__ . '::Job::BatchFileNotFound' => {

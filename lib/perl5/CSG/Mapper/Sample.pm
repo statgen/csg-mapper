@@ -21,7 +21,7 @@ has 'pi'            => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_
 has 'run_dir'       => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_run_dir');
 has 'filename'      => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_filename');
 has 'sample_id'     => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_sample_id');
-has 'incoming_path' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_incoming_path');
+has 'incoming_path' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_incoming_path', predicate => 'has_incoming_path');
 has 'result_path'   => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_result_path');
 
 has 'cram' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_cram');
