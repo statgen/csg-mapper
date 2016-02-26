@@ -155,7 +155,7 @@ sub execute {
     my $tmp_dir = File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $sample->sample_id);
 
     if ($opts->{step} eq 'all') {
-      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str);
+      $tmp_dir =  File::Spec->join($config->get($cluster, 'tmp_dir'), $project, $build_str, $opts->{step});
     }
 
     unless ($dep_job_meta) {
