@@ -50,8 +50,8 @@ sub test_get : Test(8) {
   is($config->get('csg',       'gotcloud_conf'), 'etc/gotcloud.conf.csg',  'gotcloud conf matches for cluster csg');
   is($config->get('flux',      'gotcloud_conf'), 'etc/gotcloud.conf.flux', 'gotcloud conf matches for cluster flux');
 
-  dies_ok(sub {$config->get('foo',    'bar')}, 'die expected for non-existant category');
-  dies_ok(sub {$config->get('topmed', 'bar')}, 'die expected for non-existant value');
+  is($config->get('foo',    'bar'), undef, 'expected undef for non-existant category');
+  is($config->get('topmed', 'bar'), undef, 'expected undef for non-existant value');
 }
 
 sub test_overrides : Test(no_plan) {
