@@ -22,6 +22,7 @@ has 'factory' => (
       state
       job_output_regexp
       job_submit_cmd
+      job_kill_cmd
       _time_remaining
       )
   ],
@@ -50,8 +51,6 @@ sub submit {
   CSG::Mapper::Exceptions::Job::BatchFileNotFound->throw() unless -e $file;
   CSG::Mapper::Exceptions::Job::BatchFileNotReadable->throw() unless -r $file;
 
-  my $logger = CSG::Mapper::Logger->new();
-
   try {
     chomp(my $output = capture($self->job_submit_cmd, $file));
     my $regexp = $self->job_output_regexp;
@@ -71,6 +70,28 @@ sub submit {
   return;
 }
 
+sub cancel {
+  my ($self) = @_;
+
+  CSG::Mapper::Exceptions::Job::NoJobToCancel->throw() unless $self->has_job_id;
+
+  try {
+    chomp(my $output = capture($self->job_kill_cmd, $self->job_id));
+
+    if ($output) {
+      CSG::Mapper::Exceptions::Job::ProcessOutput->throw(output => $output);
+    }
+  } catch {
+    die $_ unless blessed $_ and $_->can('rethrow');
+
+    $_->rethrow if $_->can('rethrow');
+
+    CSG::Mapper::Exceptions::Job::CancellationFailure->throw(error => $_);
+  };
+
+  return;
+}
+
 sub time_remaining {
   my ($self) = @_;
 
@@ -84,4 +105,5 @@ sub time_remaining {
 
   return 0;
 }
+
 1;

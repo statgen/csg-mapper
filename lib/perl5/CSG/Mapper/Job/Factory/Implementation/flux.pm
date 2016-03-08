@@ -9,6 +9,7 @@ use Moose;
 Readonly::Scalar my $PREFIX    => q{/usr/local/torque/bin};
 Readonly::Scalar my $QSUB_CMD  => File::Spec->join($PREFIX, 'qsub');
 Readonly::Scalar my $QSTAT_CMD => File::Spec->join($PREFIX, 'qstat');
+Readonly::Scalar my $QDEL_CMD  => File::Spec->join($PREFIX, 'qdel');
 
 Readonly::Scalar my $FLUX_KIBANA_URL_FORMAT    => q{https://kibana.arc-ts.umich.edu/logstash-joblogs-%d.*/pbsacctlog/_search};
 Readonly::Scalar my $JOB_STATE_CMD_FORMAT      => $QSTAT_CMD . q{ -f -e %d > /dev/null 2>&1 ; echo $?};
@@ -25,6 +26,7 @@ has '_logstash_url' => (is => 'ro', isa => 'Str', lazy => 1, builder => '_build_
 has 'job_id'            => (is => 'rw', isa => 'Str',       predicate => 'has_job_id');
 has 'job_output_regexp' => (is => 'ro', isa => 'RegexpRef', default   => sub {return $JOB_OUTPUT_REGEXP});
 has 'job_submit_cmd'    => (is => 'ro', isa => 'Str',       default   => sub {return $QSUB_CMD});
+has 'job_kill_cmd'      => (is => 'ro', isa => 'Str',       default   => sub {return $QDEL_CMD});
 
 around 'job_id' => sub {
   my ($orig, $self) = @_;

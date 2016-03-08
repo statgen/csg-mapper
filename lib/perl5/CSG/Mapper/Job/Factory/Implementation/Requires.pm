@@ -10,6 +10,7 @@ requires(
     state
     job_output_regexp
     job_submit_cmd
+    job_kill_cmd
     )
 );
 

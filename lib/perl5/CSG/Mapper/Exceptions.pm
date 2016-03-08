@@ -14,6 +14,12 @@ use Exception::Class (
     description => 'Failed to parse the job submission output',
     fields      => [qw(output)],
   },
+  __PACKAGE__ . '::Job::NoJobToCancel' => {
+    description => 'Can not cancel a job without a job id',
+  },
+  __PACKAGE__ . '::Job::CancellationFailure' => {
+    description => 'Failed to cancel job',
+  },
   __PACKAGE__ . '::Sample::NotFound' => {
     description => 'Sample not found on disk',
     fields      => [qw(bam_path cram_path)],

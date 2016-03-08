@@ -259,6 +259,19 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-01-19 09:21:17
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7idfHfC64a/8/lCHjYZ8OA
 
+sub cancel {
+  my ($self) = @_;
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+  $self->update(
+    {
+      ended_at  => $self->result_source->schema->now(),
+      exit_code => '-1',
+    }
+  );
+
+  $self->result->cancel();
+
+  return;
+}
+
 1;

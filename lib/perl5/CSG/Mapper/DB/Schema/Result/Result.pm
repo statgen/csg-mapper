@@ -191,4 +191,11 @@ sub status_line {
     $self->state->name;
 }
 
+sub cancel {
+  my ($self) = @_;
+  my $state = $self->result_source->schema->resultset('State')->find({name => 'cancelled'});
+  $self->update({ state_id => $state->id });
+  return;
+}
+
 1;
