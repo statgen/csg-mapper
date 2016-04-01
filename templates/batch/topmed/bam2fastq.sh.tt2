@@ -95,6 +95,21 @@ $MAPPER_LOG_CMD --message "pipe_rc: $rc"
 if [ "$rc" -eq 0 ]; then
   $MAPPER_LOG_CMD --message "[% settings.pipeline %] completed with exit code $rc"
   $MAPPER_UPDATE_CMD --state completed --exit-code $rc
+
+  [% IF settings.pipeline == 'cleanUpBam2fastq' -%]
+  if [ "$rc" -eq 0 ]; then
+    $MAPPER_LOG_CMD --message "puring temporary fastq files from [% settings.pipeline %]"
+    rm -rf ${TMP_DIR}/fastqs/tmp.cleanUpBam
+
+    cleanup_rc=$?
+    if [ "$cleanup_rc" -ne 0 ]; then
+      $MAPPER_LOG_CMD --message "failed to delete temporary fastq files from [% settings.pipeline %]"
+      $MAPPER_UPDATE_CMD --state failed --exit-code $cleanup_rc
+      exit 1
+    fi
+  fi
+  [% END -%]
+
   $MAPPER_CMD launch --verbose --project [% settings.project %] --cluster [% settings.cluster %] --meta-id $META_ID --step align
 else
   $MAPPER_LOG_CMD --message "[% settings.pipeline %] failed with exit code $rc" --level critical
