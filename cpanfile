@@ -7,6 +7,7 @@ requires 'Template';
 requires 'Class::CSV';
 requires 'Try::Tiny';
 requires 'IO::All';
+requires 'local::lib';
 
 requires 'System::Command';
 requires 'IPC::System::Simple';

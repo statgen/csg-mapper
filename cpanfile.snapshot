@@ -3809,6 +3809,13 @@ DISTRIBUTIONS
       URI::Escape 0
       WWW::RobotRules 6
       perl 5.008001
+  local-lib-2.000018
+    pathname: H/HA/HAARG/local-lib-2.000018.tar.gz
+    provides:
+      lib::core::only undef
+      local::lib 2.000018
+    requirements:
+      perl 5.006
   namespace-clean-0.25
     pathname: R/RI/RIBASUSHI/namespace-clean-0.25.tar.gz
     provides:

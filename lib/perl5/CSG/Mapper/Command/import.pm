@@ -18,7 +18,6 @@ sub opt_spec {
 sub validate_args {
   my ($self, $opts, $args) = @_;
 
-
   unless ($self->app->global_options->{cluster}) {
     $self->usage_error('Cluster environment is required');
   }

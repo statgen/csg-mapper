@@ -119,4 +119,20 @@ __PACKAGE__->has_many(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub completed_results {
+  my ($self, $build) = @_;
+
+  my $state = $self->result_source->schema->resultset('State')->find({name => 'completed'});
+
+  return $self->samples->search(
+    {
+      'results.state_id' => $state->id,
+      'results.build'    => $build,
+    },
+    {
+      join => 'results',
+    }
+  );
+}
+
 1;
